@@ -1,79 +1,63 @@
-# Node modules
-node_modules/
+# Embedded build output
+*.elf
+*.hex
+*.bin
+*.map
+*.eep
+*.obj
+*.o
+*.d
+*.lst
+*.srec
 
-# Logs
-logs/
+# Arduino specific
+*.ino.*
+*.cpp.*
+*.pyc
+
+# PlatformIO
+.pio/
+.vscode/.browse.c_cpp.db
+
+# STM32CubeIDE
+*.ioc
+*.launch
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+*.mxproject
+*.cproject
+*.project
+.settings/
 
-# Environment variables
-.env
-.env.*
+# Keil uVision
+*.uvoptx
+*.uvprojx
+*.uvguix.*
+*.bak
 
-# VS Code settings
-.vscode/
-
-# Build output
+# MPLAB X
 dist/
-build/
-out/
-tmp/
-temp/
+nbproject/Makefile-*
+nbproject/private/
 
-# OS files
-.DS_Store
-Thumbs.db
+# IAR Embedded Workbench
+*.eww
+*.ewd
+*.ewp
+*.ewt
+*.ewc
+*.dep
+*.tmp
+*.pbd
+*.dbgdt
+*.dsk
 
-# Coverage reports
-coverage/
-.nyc_output/
+# Segger Embedded Studio
+*.emProject
+*.emSession
+*.emSolution
+*.emDebug
 
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm/
-
-# Optional eslint cache
-.eslintcache
-
-# Optional REPL history
-.node_repl_history
-
-# Editor directories and files
-.idea/
-*.sublime-workspace
-*.sublime-project
-
-# Test output
-test-output/
-test-results/
-jest-html-reporters-*.html
-
-# Framework/Tool specific
-.next/
-.nuxt/
-.svelte-kit/
-.cache/
-.parcel-cache/
-
-# PM2 logs and pids
-pids/
-pm2.log
-
-# Docker override files
-docker-compose.override.yml
-
-# Mac system files
-.AppleDouble
-.LSOverride
-
-# Windows system files
-ehthumbs.db
-Desktop.ini
-
-# Optional lock files (uncomment if you don't want to commit)
-# package-lock.json
-# yarn.lock
+# General backup and temp files
+*.bak
+*.tmp
+*.swp
