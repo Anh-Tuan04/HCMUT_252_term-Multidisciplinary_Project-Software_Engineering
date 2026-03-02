@@ -1,63 +1,79 @@
-# Embedded build output
-*.elf
-*.hex
-*.bin
-*.map
-*.eep
-*.obj
-*.o
-*.d
-*.lst
-*.srec
+# Node modules
+node_modules/
 
-# Arduino specific
-*.ino.*
-*.cpp.*
-*.pyc
-
-# PlatformIO
-.pio/
-.vscode/.browse.c_cpp.db
-
-# STM32CubeIDE
-*.ioc
-*.launch
+# Logs
+logs/
 *.log
-*.mxproject
-*.cproject
-*.project
-.settings/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Keil uVision
-*.uvoptx
-*.uvprojx
-*.uvguix.*
-*.bak
+# Environment variables
+.env
+.env.*
 
-# MPLAB X
+# VS Code settings
+.vscode/
+
+# Build output
 dist/
-nbproject/Makefile-*
-nbproject/private/
+build/
+out/
+tmp/
+temp/
 
-# IAR Embedded Workbench
-*.eww
-*.ewd
-*.ewp
-*.ewt
-*.ewc
-*.dep
-*.tmp
-*.pbd
-*.dbgdt
-*.dsk
+# OS files
+.DS_Store
+Thumbs.db
 
-# Segger Embedded Studio
-*.emProject
-*.emSession
-*.emSolution
-*.emDebug
+# Coverage reports
+coverage/
+.nyc_output/
 
-# General backup and temp files
-*.bak
-*.tmp
-*.swp
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Editor directories and files
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Test output
+test-output/
+test-results/
+jest-html-reporters-*.html
+
+# Framework/Tool specific
+.next/
+.nuxt/
+.svelte-kit/
+.cache/
+.parcel-cache/
+
+# PM2 logs and pids
+pids/
+pm2.log
+
+# Docker override files
+docker-compose.override.yml
+
+# Mac system files
+.AppleDouble
+.LSOverride
+
+# Windows system files
+ehthumbs.db
+Desktop.ini
+
+# Optional lock files (uncomment if you don't want to commit)
+# package-lock.json
+# yarn.lock
