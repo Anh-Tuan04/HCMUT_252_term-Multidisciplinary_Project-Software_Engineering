@@ -1,0 +1,50 @@
+@startuml
+
+component "Embedded" as Embedded {
+    component "Ultrasonic sensor" as UltrasonicSensor
+    component "Camera" as Camera
+    component "Parking Gate Device" as ParkingGateDevice
+    component "Parking Card Reader" as ParkingCardReader
+}
+
+component "Server" as Server {
+    component "Controller" as ControllerServer {
+        component "EmbeddedAdapter" as EmbeddedAdapter 
+        ' May need to rename ---v
+        component "WebAdapter" as WebAdapter
+    }
+    component "Service" as Service {
+        component "Parking Suggestion Service" as ParkingSuggestionService
+        component "Paking Cards' Status Service" as ParkingCardsStatusService
+        component "Parking Slot Service" as ParkingSlotService
+        component "Statistics Service" as StatisticsService
+    }
+    component "Repository" as Repository {
+        component "ParkingLotDailyTrafficRepository" as ParkingLotDailyTrafficRepository
+        component "ParkingLotStatusRepository" as ParkingLotStatusRepository
+        component "ParkingCardsRepository" as ParkingCardsRepository
+    }
+    ParkingSuggestionService <--> ParkingLotStatusRepository
+    ParkingSlotService <--> ParkingLotStatusRepository
+    ParkingCardsStatusService <--> ParkingCardsRepository
+    StatisticsService <--> ParkingLotDailyTrafficRepository
+
+    component "Database" as Database
+    ControllerServer <--> Service
+    Repository <--> Database
+    Embedded --> EmbeddedAdapter: "send data"
+    EmbeddedAdapter --> Embedded: "control embedded"
+}
+
+component "Client" as Client {
+    component "View" as View
+    component "Controller" as ControllerClient
+    component "Model" as ModelClient
+    ControllerClient --> WebAdapter: "send request"
+    WebAdapter --> ControllerClient: "response"
+    View --> ControllerClient: "send input"
+    ControllerClient --> View: "update view"
+    ControllerClient --> ModelClient: "manipulate data"
+    ModelClient --> View: "update view"
+}
+
