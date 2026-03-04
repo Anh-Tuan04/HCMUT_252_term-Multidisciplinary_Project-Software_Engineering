@@ -20,9 +20,9 @@ component "Server" as Server {
         component "Statistics Service" as StatisticsService
     }
     component "Repository" as Repository {
-        component "ParkingLotDailyTrafficRepository" as ParkingLotDailyTrafficRepository
-        component "ParkingLotStatusRepository" as ParkingLotStatusRepository
-        component "ParkingCardsRepository" as ParkingCardsRepository
+        component "Parking Daily Traffic Repository" as ParkingLotDailyTrafficRepository
+        component "Parking Lot Status Repository" as ParkingLotStatusRepository
+        component "Parking Cards Repository" as ParkingCardsRepository
     }
     ParkingSuggestionService <--> ParkingLotStatusRepository
     ParkingSlotService <--> ParkingLotStatusRepository
@@ -37,7 +37,14 @@ component "Server" as Server {
 }
 
 component "Client" as Client {
-    component "View" as View
+    component "View" as View {
+        component "Map View" as MapView {
+            component "Parking Slots' Status" as ParkingSlotsStatus
+            component "Parking Suggestions" as ParkingSuggestions
+            component "Warnings" as Warnings
+        }
+        component "Traffic Chart" as TrafficChart
+    }
     component "Controller" as ControllerClient
     component "Model" as ModelClient
     ControllerClient --> WebAdapter: "send request"
