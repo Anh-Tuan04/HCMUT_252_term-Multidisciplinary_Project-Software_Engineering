@@ -1,19 +1,22 @@
 @startuml
-
+top to bottom direction
 component "Embedded" as Embedded {
-    component "Ultrasonic sensor" as UltrasonicSensor
     component "Camera" as Camera
-    component "Parking Gate Device" as ParkingGateDevice
+    component "Parking Gate Device" as ParkingGateDevice {
+        component "Ultrasonic sensor" as UltrasonicSensor
+        component "Other embedded devices" as OtherEmbeddedDevices
+    }
     component "Parking Card Reader" as ParkingCardReader
 }
 
 component "Server" as Server {
     component "Controller" as ControllerServer {
-        component "EmbeddedAdapter" as EmbeddedAdapter 
+        component "Embedded Adapter" as EmbeddedAdapter 
         ' May need to rename ---v
-        component "WebAdapter" as WebAdapter
+        component "Web Adapter" as WebAdapter
     }
     component "Service" as Service {
+        ' component "Embedded Handler Service" as EmbeddedHandlerService
         component "Parking Suggestion Service" as ParkingSuggestionService
         component "Paking Cards' Status Service" as ParkingCardsStatusService
         component "Parking Slot Service" as ParkingSlotService
@@ -30,6 +33,7 @@ component "Server" as Server {
     StatisticsService <--> ParkingLotDailyTrafficRepository
 
     component "Database" as Database
+
     ControllerServer <--> Service
     Repository <--> Database
     Embedded --> EmbeddedAdapter: "send data"
@@ -37,21 +41,31 @@ component "Server" as Server {
 }
 
 component "Client" as Client {
+    component "Controller" as ControllerClient
     component "View" as View {
         component "Map View" as MapView {
-            component "Parking Slots' Status" as ParkingSlotsStatus
-            component "Parking Suggestions" as ParkingSuggestions
-            component "Warnings" as Warnings
+            component "Parking Slots' Status" as ParkingSlotsStatusView
+            component "Parking Suggestions" as ParkingSuggestionsView
+            component "Warnings" as WarningsView
         }
-        component "Traffic Chart" as TrafficChart
+        component "Traffic Dashboard" as TrafficDashboard
     }
-    component "Controller" as ControllerClient
-    component "Model" as ModelClient
+    component "Model" as ModelClient {
+        component "Parking Slots Status Model" as ParkingSlotsStatusModel
+        component "Parking Suggestions Model" as ParkingSuggestionsModel
+        component "Warnings Model" as WarningsModel
+        component "Traffic Statistics Model" as TrafficStatisticsModel
+        ParkingSlotsStatusModel --> ParkingSlotsStatusView
+        ParkingSuggestionsModel --> ParkingSuggestionsView
+        WarningsModel --> WarningsView
+        TrafficStatisticsModel --> TrafficDashboard
+    }   
     ControllerClient --> WebAdapter: "send request"
     WebAdapter --> ControllerClient: "response"
     View --> ControllerClient: "send input"
     ControllerClient --> View: "update view"
     ControllerClient --> ModelClient: "manipulate data"
-    ModelClient --> View: "update view"
 }
+
+@enduml
 
