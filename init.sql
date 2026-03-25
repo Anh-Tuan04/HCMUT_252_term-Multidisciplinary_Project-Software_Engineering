@@ -1,64 +1,41 @@
 CREATE DATABASE IF NOT EXISTS smart_parking;
 USE smart_parking;
-
--- =========================
--- 1. PARKING SLOTS
--- =========================
-CREATE TABLE IF NOT EXISTS parking_slots (
-    id VARCHAR(36) PRIMARY KEY,
-    slot_code VARCHAR(20) UNIQUE,
-    status ENUM('EMPTY', 'OCCUPIED', 'MAINTENANCE') DEFAULT 'EMPTY',
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
-    ON UPDATE CURRENT_TIMESTAMP
+-- Bảng Bãi Xe (Parking Lots)
+CREATE TABLE parking_lots (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    location VARCHAR(255)
 );
-
--- =========================
--- 2. PARKING CARDS
--- =========================
-CREATE TABLE IF NOT EXISTS parking_cards (
-    id VARCHAR(50) PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE
+-- Bảng Bộ Điều Khiển (IoT Devices)
+CREATE TABLE iot_devices (
+    mac_address VARCHAR(50) PRIMARY KEY,
+    lot_id INT,
+    device_name VARCHAR(50),
+    FOREIGN KEY (lot_id) REFERENCES parking_lots(id)
 );
-
--- =========================
--- 3. PARKING SESSIONS
--- =========================
-CREATE TABLE IF NOT EXISTS parking_sessions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    slot_id VARCHAR(36) NOT NULL,
-    card_id VARCHAR(50),
-
-    start_time DATETIME NOT NULL,
-    end_time DATETIME NULL,
-
-    status ENUM('ACTIVE', 'COMPLETED') DEFAULT 'ACTIVE',
-
-    FOREIGN KEY (slot_id) REFERENCES parking_slots(id) ON DELETE CASCADE,
-    FOREIGN KEY (card_id) REFERENCES parking_cards(id)
+-- Bảng Ô Đỗ (Parking Slots)
+CREATE TABLE parking_slots (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(10) NOT NULL,
+    -- Thuộc bãi nào
+    lot_id INT NOT NULL,
+    -- Cắm vào con ESP32 nào
+    device_mac VARCHAR(50) NOT NULL,
+    -- Cắm vào cổng số mấy trên ESP32 (1, 2, 3...)
+    port_number INT NOT NULL,
+    status ENUM('AVAILABLE', 'OCCUPIED', 'MAINTAIN') DEFAULT 'AVAILABLE',
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lot_id) REFERENCES parking_lots(id),
+    FOREIGN KEY (device_mac) REFERENCES iot_devices(mac_address),
+    UNIQUE KEY unique_port_per_device (device_mac, port_number),
+    UNIQUE KEY unique_slot_per_lot (lot_id, name)
 );
-
--- =========================
 -- INDEXES
--- =========================
-CREATE INDEX idx_slots_status ON parking_slots(status);
-
-CREATE INDEX idx_sessions_card ON parking_sessions(card_id);
-CREATE INDEX idx_sessions_status ON parking_sessions(status);
-CREATE INDEX idx_sessions_slot ON parking_sessions(slot_id);
-
-CREATE INDEX idx_logs_slot ON sensor_logs(slot_id);
-CREATE INDEX idx_logs_time ON sensor_logs(created_at);
-
--- =========================
--- MOCK DATA FOR TESTING
--- =========================
-INSERT INTO parking_slots (id, slot_code, status) VALUES 
-(UUID(), 'A1', 'EMPTY'),
-(UUID(), 'A2', 'EMPTY'),
-(UUID(), 'A3', 'EMPTY'),
-(UUID(), 'B1', 'EMPTY'),
-(UUID(), 'B2', 'EMPTY') AS new
-ON DUPLICATE KEY UPDATE 
-slot_code = new.slot_code,
-status = new.status;
+-- Index theo trạng thái ô đỗ
+CREATE INDEX idx_status ON parking_slots(status);
+-- Index theo bãi xe (Để JOIN và lọc theo bãi xe)
+CREATE INDEX idx_lot_id ON parking_slots(lot_id);
+-- Index theo thiết bị
+CREATE INDEX idx_device_mac ON parking_slots(device_mac);
+-- Index cho bảng thiết bị (Tìm thiết bị theo bãi)
+CREATE INDEX idx_iot_lot ON iot_devices(lot_id);
