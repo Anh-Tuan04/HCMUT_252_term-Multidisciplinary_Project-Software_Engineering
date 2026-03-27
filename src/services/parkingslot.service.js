@@ -27,6 +27,28 @@ class SlotService {
         return { changed: false, name: slot.name, status: slot.status };
     }
 
+    // Xử lý từ Admin
+    async handleAdminUpdate(id, status) {
+        const slot = await slotRepository.findById(id);
+        if (!slot) return { error: "Ô đỗ không tồn tại", code: 404 };
+
+        const oldStatus = slot.status;
+
+        if (oldStatus !== status) {
+            await slotRepository.updateStatusSlot(slot.id, status);
+            return {
+                changed: true,
+                id: slot.id,
+                lot_id: slot.lot_id,
+                name: slot.name,
+                oldStatus,
+                newStatus: status
+            };
+        }
+        return { changed: false, name: slot.name, status: slot.status };
+    }
+
+
     // Lấy Dashboard
     async getLotDashboard(lotId) {
         const [slots, summary] = await Promise.all([

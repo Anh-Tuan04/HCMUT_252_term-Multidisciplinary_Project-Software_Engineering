@@ -1,7 +1,7 @@
 'use strict';
 import express from 'express';
 import 'dotenv/config';
-import getConnection from './config/db.js';
+import {getConnection} from './config/db.js';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';

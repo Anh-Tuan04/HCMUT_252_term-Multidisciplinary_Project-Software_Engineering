@@ -35,6 +35,12 @@ class SlotRepository {
         return rows[0];
     }
 
+    async findById(id) {
+        const sql = 'SELECT id, status, lot_id, name FROM parking_slots WHERE id = ? LIMIT 1';
+        const [rows] = await pool.query(sql, [id]);
+        return rows[0];
+    }
+
     async updateStatusSlot(id, status) {
         return await pool.query('UPDATE parking_slots SET status = ? WHERE id = ?', [status, id]);
     }
