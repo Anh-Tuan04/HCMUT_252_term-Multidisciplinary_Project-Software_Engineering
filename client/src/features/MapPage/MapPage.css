@@ -1,0 +1,123 @@
+.parking-lot {
+    position: relative;
+    width: 60%;
+    aspect-ratio: 824.7 / 435;
+    border: 4px solid var(--gray-primary); 
+    overflow: visible; /* Cho phép xe xuất hiện từ ngoài bãi vào */
+}
+
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr 1fr;
+    width: 100%; height: 100%;
+}
+
+.slot {
+    position: relative;
+    display: flex; justify-content: center; align-items: center;
+    box-sizing: border-box;
+    isolation: isolate;
+}
+
+.slot::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--gray-primary);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.slot:nth-child(4n)::after { display: none; }
+
+.top-slot::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 4px;
+    background: var(--gray-primary);
+    z-index: 1;
+    pointer-events: none;
+}
+
+
+.fixing-warning {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(62%, 112px);
+    max-height: 88%;
+    aspect-ratio: 112 / 199;
+    height: auto;
+    background-color: rgba(255, 0, 0, 0.3); /* Đỏ nhạt 30% */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+    pointer-events: none;
+    animation: blink 2s infinite; /* Khung warning và icon nhấp nháy cùng lúc */
+}
+
+.warning-icon {
+    width: clamp(14px, 48%, 56px);
+    aspect-ratio: 56 / 48;
+    height: auto;
+    background-color: var(--warning-icon-color);
+    -webkit-mask-image: var(--svg-warning-icon);
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: var(--svg-warning-icon);
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+
+.car {
+    width: 70%; height: 80%;
+    background-image: var(--svg-car);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    z-index: 3;
+}
+
+/* Animation vào */
+.top-slot .car-animate { animation: driveDown 1s ease-out forwards; }
+.bottom-slot .car-animate { animation: driveUp 1s ease-out forwards; }
+
+@keyframes driveDown {
+    0% { transform: translateY(-120%) rotate(90deg); opacity: 0; }
+    100% { transform: translateY(0) rotate(90deg); opacity: 1; }
+}
+@keyframes driveUp {
+    0% { transform: translateY(120%) rotate(-90deg); opacity: 0; }
+    100% { transform: translateY(0) rotate(-90deg); opacity: 1; }
+}
+
+/* Animation ra */
+.top-slot .car-exit { animation: exitUp 0.8s ease-in forwards; }
+.bottom-slot .car-exit { animation: exitDown 0.8s ease-in forwards; }
+
+@keyframes exitUp {
+    0% { transform: translateY(0) rotate(90deg); opacity: 1; }
+    100% { transform: translateY(-120%) rotate(90deg); opacity: 0; }
+}
+@keyframes exitDown {
+    0% { transform: translateY(0) rotate(-90deg); opacity: 1; }
+    100% { transform: translateY(120%) rotate(-90deg); opacity: 0; }
+}
