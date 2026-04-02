@@ -52,6 +52,21 @@ export const MapView = {
         MapView.drawInternalContent(slotEl, status);
     },
 
+    applyBatchSlots: (slots) => {
+        const list = Array.isArray(slots) ? slots : [];
+
+        list.forEach((slot) => {
+            const slotEl = document.getElementById(`slot-${slot.id}`);
+            if (!slotEl) return;
+
+            const status = Number(slot.status);
+            const safeStatus = Number.isFinite(status) ? status : 0;
+
+            slotEl.dataset.status = safeStatus;
+            MapView.drawInternalContent(slotEl, safeStatus);
+        });
+    },
+
     // Hàm để vẽ ruột ô đỗ
     drawInternalContent: (slotEl, status) => {
         slotEl.innerHTML = ''; // Xóa sạch nội dung cũ
