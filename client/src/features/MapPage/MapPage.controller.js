@@ -4,8 +4,17 @@ import { initialMapState, replaceAllSlotStatuses, updateSlotStatus } from './Map
 import SocketService from '../../shared/services/SocketService.js';
 
 const EVENTS = {
-  SLOT_UPDATE: 'slot_update',
-  SLOTS_SNAPSHOT: 'slots_snapshot'
+  JOIN_LOT: 'join_lot',
+  SLOT_UPDATE: 'SLOT_UPDATE'
+};
+
+const LOT_ID = Number(import.meta.env.VITE_LOT_ID || 1);
+const API_BASE = import.meta.env.VITE_API_BASE || import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+
+const SERVER_TO_UI_STATUS = {
+  AVAILABLE: 0,
+  OCCUPIED: 1,
+  MAINTAIN: 2
 };
 
 const cloneInitialState = () => ({
@@ -15,19 +24,54 @@ const cloneInitialState = () => ({
 let mapState = cloneInitialState();
 let socketRef = null;
 
+const toUiStatus = (serverStatus) => {
+  if (typeof serverStatus === 'number') {
+    return Number.isFinite(serverStatus) ? serverStatus : 0;
+  }
+  return SERVER_TO_UI_STATUS[serverStatus] ?? 0;
+};
+
+const fetchFullState = async () => {
+  const response = await fetch(`${API_BASE}/api/slots?lotId=${LOT_ID}`);
+  if (!response.ok) throw new Error(`Failed to fetch slots: ${response.status}`);
+
+  const json = await response.json();
+  if (!json?.success) return;
+
+  const slots = Array.isArray(json?.data?.slots) ? json.data.slots : [];
+  mapState = cloneInitialState();
+
+  slots.forEach((slot) => {
+    const id = Number(slot?.id);
+    if (!Number.isFinite(id)) return;
+    mapState = updateSlotStatus(mapState, id, toUiStatus(slot?.status));
+  });
+
+  MapView.applyBatchSlots(mapState.slots);
+};
+
 const handleSlotUpdate = (data) => {
+  const lotId = Number(data?.lot_id);
+  if (Number.isFinite(lotId) && lotId !== LOT_ID) return;
+
   const id = Number(data?.id);
-  const status = Number(data?.status);
+  const status = toUiStatus(data?.newStatus);
   if (!Number.isFinite(id) || !Number.isFinite(status)) return;
 
   mapState = updateSlotStatus(mapState, id, status);
   MapView.updateSlot(id, status);
 };
 
-const handleSnapshot = (data) => {
-  const arr = Array.isArray(data?.statuses) ? data.statuses : [];
-  mapState = replaceAllSlotStatuses(mapState, arr);
-  MapView.applyBatchSlots(mapState.slots);
+const handleConnect = async () => {
+  if (!socketRef) return;
+
+  socketRef.emit(EVENTS.JOIN_LOT, LOT_ID);
+
+  try {
+    await fetchFullState();
+  } catch (error) {
+    console.error('Cannot load slot snapshot:', error);
+  }
 };
 
 export const MapController = {
@@ -37,11 +81,12 @@ export const MapController = {
 
     socketRef = SocketService.connect();
 
-    // Tac vu 1: update 1 slot
+    socketRef.on('connect', handleConnect);
     socketRef.on(EVENTS.SLOT_UPDATE, handleSlotUpdate);
 
-    // Tac vu 2: update dong loat
-    socketRef.on(EVENTS.SLOTS_SNAPSHOT, handleSnapshot);
+    if (socketRef.connected) {
+      handleConnect();
+    }
   },
 
   applyBatchStatuses: (statusArray) => {
@@ -52,7 +97,7 @@ export const MapController = {
 
   cleanup: () => {
     if (!socketRef) return;
+    socketRef.off('connect', handleConnect);
     socketRef.off(EVENTS.SLOT_UPDATE, handleSlotUpdate);
-    socketRef.off(EVENTS.SLOTS_SNAPSHOT, handleSnapshot);
   }
 };
