@@ -8,7 +8,7 @@ export class TransformInterceptor implements NestInterceptor {
       map((data) => ({
         success: true,
         message: data?.message || 'Thực hiện thành công',
-        data: data?.result !== undefined ? data.result : data,
+        data: data?.data !== undefined ? data.data : data,
       })),
     );
   }

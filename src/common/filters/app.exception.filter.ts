@@ -22,7 +22,7 @@ export class AppExceptionFilter implements ExceptionFilter {
         ? response.message
         : [response?.message || 'Error'];
     }
-
+    console.log(exception);
     return res.status(status).json({
       success: false,
       errors: errorList

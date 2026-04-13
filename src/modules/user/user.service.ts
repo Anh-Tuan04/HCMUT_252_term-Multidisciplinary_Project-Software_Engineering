@@ -14,6 +14,23 @@ export class UserService {
         return email.split('@')[0];
     };
 
+    // Generate a unique username from email local-part (e.g. john, john1, john2...)
+    async generateUniqueUsernameFromEmail(email: string): Promise<string> {
+        const rawBase = this.generateUsernameFromEmail(email).trim().toLowerCase();
+        const normalizedBase = rawBase.replace(/[^a-z0-9._-]/g, '');
+        const base = normalizedBase || 'user';
+
+        let candidate = base;
+        let suffix = 1;
+
+        while (await this.prisma.user.findUnique({ where: { username: candidate }, select: { id: true } })) {
+            candidate = `${base}${suffix}`;
+            suffix += 1;
+        }
+
+        return candidate;
+    }
+
     // Check email exists
     async isEmailExist(email: string): Promise<boolean> {
         const user = await this.prisma.user.findUnique({
@@ -25,7 +42,7 @@ export class UserService {
     // Find user by email
     async findUserByEmail(email: string): Promise<UserFindEmail> {
         const user = await this.prisma.user.findUnique({
-            where: { email },
+            where: { email: email },
             select: {
                 id: true,
                 email: true,
@@ -96,14 +113,16 @@ export class UserService {
         const existingUser = await this.isEmailExist(dto.email);
         if (existingUser) throw new ConflictException('Email đã được đăng ký!');
         const hashPassword = await argon.hash(dto.password);
+        const username = await this.generateUniqueUsernameFromEmail(dto.email);
         await this.prisma.user.create({
             data: {
                 email: dto.email,
                 password: hashPassword,
-                username: this.generateUsernameFromEmail(dto.email),
+                username,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
-                role: dto.role
+                role: dto.role,
+                isVerified: true
             },
         });
     };

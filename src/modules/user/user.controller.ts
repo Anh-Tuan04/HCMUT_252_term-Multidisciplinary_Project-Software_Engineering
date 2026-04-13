@@ -2,6 +2,9 @@ import { Body, Controller, Get, Patch, Post, Req } from '@nestjs/common';
 import { Request } from "express";
 import { UserService } from './user.service';
 import { ChangePasswordDTO, ChangeRoleDTO, CreateUserDTO } from './dto';
+import { Role } from '@prisma/client';
+import { Roles } from '../../authentication/auth/decorators/roles';
+import { Public } from '../../authentication/auth/decorators/customize';
 
 @Controller('users')
 export class UserController {
@@ -9,6 +12,7 @@ export class UserController {
 
   // Get User With Paginateion
   @Get()
+  @Roles(Role.ADMIN, Role.MANAGER)
   async getUserWithPaginate( @Req() req: Request) {
     const { page, limit, search } = req.query;
     const pageNumber = Number(page) || 1;
@@ -31,6 +35,8 @@ export class UserController {
 
   // Create User By Admin
   @Post()
+  @Public()
+  @Roles(Role.ADMIN)
   async createUserByAdmin(@Body() dto: CreateUserDTO) {
     await this.userService.createUserForAdmin(dto);
     return {
@@ -50,6 +56,7 @@ export class UserController {
 
   // Change Role
   @Patch('change-role/:id')
+  @Roles(Role.ADMIN)
   async changeRole(@Req() req: Request, @Body() dto: ChangeRoleDTO) {
     const email = (req.user as any)?.email;
     await this.userService.changeRole(email, dto);
