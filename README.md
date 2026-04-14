@@ -2,98 +2,338 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+---
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# Smart Parking Backend
 
-## Description
+Production-oriented backend service for a smart parking platform, built with NestJS, Prisma, MySQL, JWT authentication, and real-time socket updates.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This project powers parking lot operations including account lifecycle, IoT device-slot mapping, parking slot management, slot change history, and vehicle in/out logging.
 
-## Project setup
+## 1. Introduction
 
-```bash
-$ npm install
+Smart Parking Backend is a modular API-first service designed for reliability and extensibility.
+
+- Framework: NestJS (TypeScript)
+- Database: MySQL with Prisma ORM
+- Auth: Access Token + Refresh Token with secure cookie handling
+- Email: Verification and password reset via SMTP
+- Realtime: Socket.IO namespace for parking streams
+- API Docs: Swagger UI
+
+Default API prefix:
+
+```text
+/api/v1
 ```
 
-## Compile and run the project
+Swagger endpoint:
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```text
+/api/v1/docs
 ```
 
-## Run tests
+## 2. Key Features
 
-```bash
-# unit tests
-$ npm run test
+- Authentication and authorization
+  - Register, login, logout, token refresh
+  - Email verification and password reset flow
+  - Role-ready design with guard-based protection
+- Parking domain management
+  - Parking lots, IoT devices, parking slots
+  - Device/port assignment and status tracking
+  - Slot history audit trail
+  - Vehicle entry/exit logs
+- Security and API quality
+  - Global validation pipeline
+  - Structured exception filter and transform interceptor
+  - Helmet hardening and CORS configuration
+- Developer experience
+  - Prisma-based schema and seed data
+  - Docker Compose for local database bootstrap
+  - Swagger documentation and predictable module boundaries
 
-# e2e tests
-$ npm run test:e2e
+## 3. Overall Architecture
 
-# test coverage
-$ npm run test:cov
+### 3.1 High-level architecture
+
+```mermaid
+flowchart LR
+  C[Web or Mobile Client] -->|HTTPS REST| A[NestJS API]
+  C -->|Socket.IO| W[Realtime Gateway]
+
+  subgraph APP[Application Modules]
+    direction TB
+    subgraph ROW1[ ]
+      direction LR
+      M1[Auth Module]
+      M2[Parking Lot Module]
+      M3[Parking Slot Module]
+      M4[IoT Device Module]
+    end
+    subgraph ROW2[ ]
+      direction LR
+      M5[Slot History Module]
+      M6[Vehicle Log Module]
+      M7[User Module]
+    end
+  end
+
+  A --> M1
+  A --> M2
+  A --> M3
+  A --> M4
+  A --> M5
+  A --> M6
+  A --> M7
+
+  M1 --> T[Tokens Service]
+  M1 --> E[Mail Service]
+
+  A --> P[Prisma Service]
+  P --> DB[(MySQL)]
 ```
 
-## Deployment
+### 3.2 Request lifecycle
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Client
+  participant API as NestJS API
+  participant Guard as JWT Guard
+  participant Service as Domain Service
+  participant Prisma as Prisma Service
+  participant DB as MySQL
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
+  Client->>API: HTTP request
+  API->>Guard: Authenticate (unless Public)
+  Guard-->>API: User context
+  API->>Service: Business logic
+  Service->>Prisma: Query or mutation
+  Prisma->>DB: SQL
+  DB-->>Prisma: Result
+  Prisma-->>Service: Data
+  Service-->>API: Response payload
+  API-->>Client: Standardized response
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 4. Installation
 
-## Resources
+### 4.1 Prerequisites
 
-Check out a few resources that may come in handy when working with NestJS:
+- Node.js 20+
+- npm 10+
+- Docker Desktop (recommended for local MySQL)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 4.2 Clone and install dependencies
 
-## Support
+```bash
+git clone https://github.com/Anh-Tuan04/HCMUT_252_term-Multidisciplinary_Project-Software_Engineering.git
+git checkout nestjs
+npm install
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 4.3 Start MySQL with Docker Compose
 
-## Stay in touch
+```bash
+docker compose up -d
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+The default compose file runs MySQL 8.0
 
-## License
+### 4.4 Prepare database schema and seed data
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+npx prisma db push
+npm run seed
+```
+
+## 5. Running The Project
+
+### 5.1 Development
+
+```bash
+npm run start:dev
+```
+
+### 5.2 Alternative dev mode (webpack watch)
+
+```bash
+npm run dev
+```
+
+### 5.3 Production build and run
+
+```bash
+npm run build
+npm run start:prod
+```
+
+### 5.4 Useful scripts
+
+```bash
+npm run lint
+npm run test
+npm run test:e2e
+npm run test:cov
+```
+
+## 6. Environment Configuration
+
+Create a .env file in the project root.
+
+Example:
+
+```env
+# Runtime
+NODE_ENV=development
+PORT=8080
+
+# CORS (comma-separated)
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+
+# Database (MySQL)
+DATABASE_URL="mysql://admin:123456@localhost:3307/khieudang"
+
+# JWT
+JWT_SECRET=replace_with_strong_access_secret
+JWT_EXPIRED=15m
+JWT_REFRESH_SECRET=replace_with_strong_refresh_secret
+REFRESH_EXPIRED=7d
+
+# Mail (SMTP)
+MAIL_USER=your_email@gmail.com
+MAIL_PASS=your_app_password
+
+# Verification URL consumed by MailService
+VERIFY_BASE_URL=http://localhost:8080/api/v1/auth/verify
+```
+
+Configuration notes:
+
+- DATABASE_URL is mandatory. App startup will fail if missing.
+- VERIFY_BASE_URL should point to the verify endpoint exposed by this service.
+- In production, set secure CORS origins and strong JWT secrets.
+
+## 7. Folder Structure
+
+```text
+nestjs
+├── prisma/
+│   ├── schema.prisma           # data model
+│   └── seed.ts                 # seed bootstrap
+├── src
+│   ├── authentication
+│   │   ├── auth                # register/login/refresh/logout and account lifecycle
+│   │   ├── mail                # email templates + SMTP integration
+│   │   └── tokens              # access and refresh token generation/verification
+│   ├── common
+│   │   ├── decorators          # public and role decorators
+│   │   ├── guards              # JWT, roles, WebSocket guards
+│   │   └── filters             # exception and response interceptors
+│   ├── modules
+│   │   ├── parking_lot         # parking lot management
+│   │   ├── parking_slot        # parking slot logic + realtime gateway
+│   │   ├── iot_device          # IoT device registration/mapping
+│   │   ├── slot_history        # slot change history
+│   │   ├── vehicle_log         # vehicle IN/OUT logs
+│   │   └── user                # user domain operations
+│   ├── prisma
+│   │   ├── prisma.module.ts
+│   │   └── prisma.service.ts   # Prisma + MariaDB adapter bootstrap
+│   ├── app.module.ts
+│   └── main.ts
+├── .env                        # Variable Environment
+├── docker-compose.yml          # Create Database
+├── package.json
+└── ...
+```
+
+## 8. API Examples
+
+### 8.1 Register
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane@example.com",
+    "password": "StrongPass123!"
+  }'
+```
+
+### 8.2 Login
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "jane@example.com",
+    "password": "StrongPass123!"
+  }'
+```
+
+### 8.3 Explore API via Swagger
+
+Open:
+
+```text
+http://localhost:8080/api/v1/docs
+```
+
+## 9. Contribution Guidelines
+
+We welcome contributions that improve correctness, maintainability, performance, and developer ergonomics.
+
+### 9.1 Workflow
+
+1. Fork and create a feature branch.
+2. Keep each pull request focused on one logical change.
+3. Add or update tests for changed behavior.
+4. Ensure lint and tests pass locally.
+5. Submit pull request with clear problem statement and solution notes.
+
+### 9.2 Suggested branch naming
+
+- feat/<short-description>
+- fix/<short-description>
+- chore/<short-description>
+- docs/<short-description>
+
+### 9.3 Quality checklist
+
+- No secrets committed
+- Public API changes documented
+- Backward compatibility considered
+- Migration or seed impact described
+
+## 10. License
+
+Current package metadata is set to UNLICENSED.
+
+This indicates private or internal usage unless you explicitly choose and publish an open-source license.
+
+## 11. Roadmap
+
+Near-term roadmap candidates:
+
+- Add migration pipeline with versioned Prisma migrations for CI environments
+- Introduce comprehensive unit and integration test suites per domain module
+- Add observability stack (structured logs, metrics, tracing)
+- Harden authorization with fine-grained permission policies
+- Add API rate limiting and abuse protection
+- Expand real-time capabilities for occupancy dashboards and alert streams
+- Provide containerized app runtime profile (API + DB + reverse proxy)
+- Publish OpenAPI contract artifacts for frontend and external integrations
+
+---
+
+If you plan to deploy this service in production, start with:
+
+1. Strong secret management
+2. Strict CORS and cookie policies
+3. Automated schema migration and backup strategy
+4. Centralized monitoring and alerting
