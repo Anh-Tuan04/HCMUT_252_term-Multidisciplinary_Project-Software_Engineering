@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Patch, Post, Param, ParseIntPipe } from '@nestjs/common';
 import { ParkingLotService } from './parking_lot.service';
 import { CreateParkingLotDTO, UpdateParkingLotDTO } from './dto';
-import { Roles } from '../../authentication/auth/decorators/roles';
+import { Roles } from '../../common/decorators/roles';
 import { Role } from '@prisma/client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 

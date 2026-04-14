@@ -3,7 +3,7 @@ import { Request } from "express";
 import { UserService } from './user.service';
 import { ChangePasswordDTO, ChangeRoleDTO, CreateUserDTO } from './dto';
 import { Role } from '@prisma/client';
-import { Roles } from '../../authentication/auth/decorators/roles';
+import { Roles } from '../../common/decorators/roles';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Users')

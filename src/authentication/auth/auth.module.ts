@@ -4,7 +4,7 @@ import { AuthController } from './auth.controller';
 import { UserModule } from '../../modules/user/user.module';
 import { MailModule } from '../mail/mail.module';
 import { TokensModule } from '../tokens/tokens.module';
-import { JwtStrategy, LocalStrategy } from './strategies';
+import { JwtStrategy, LocalStrategy} from '../../common/strategies';
 
 @Module({
   imports: [UserModule, MailModule, TokensModule],

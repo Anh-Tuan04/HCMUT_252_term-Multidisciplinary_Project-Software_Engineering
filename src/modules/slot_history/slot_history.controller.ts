@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { SlotHistoryService } from './slot_history.service';
-import { Roles } from '../../authentication/auth/decorators/roles';
+import { Roles } from '../../common/decorators/roles';
 import { Role } from '@prisma/client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 

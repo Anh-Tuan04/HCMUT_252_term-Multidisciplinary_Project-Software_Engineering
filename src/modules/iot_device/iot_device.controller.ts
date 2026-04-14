@@ -1,7 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { IotDeviceService } from './iot_device.service';
 import { CreateIoTDeviceDTO } from './dto';
-import { Roles } from '../../authentication/auth/decorators/roles';
+import { Roles } from '../../common/decorators/roles';
 import { Role } from '@prisma/client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 

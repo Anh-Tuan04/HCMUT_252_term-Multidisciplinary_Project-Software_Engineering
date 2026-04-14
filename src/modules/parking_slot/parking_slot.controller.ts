@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { ParkingSlotService } from './parking_slot.service';
 import { AdminUpdateParkingLotDTO, ChangeSlotDeviceDTO, CreateParkingSlotDTO, SensorUpdateParkingLotDTO } from './dto';
-import { Roles } from '../../authentication/auth/decorators/roles';
+import { Roles } from '../../common/decorators/roles';
 import { Role } from '@prisma/client';
-import { Public } from '../../authentication/auth/decorators/customize';
+import { Public } from '../../common/decorators/customize';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Parking Slots')

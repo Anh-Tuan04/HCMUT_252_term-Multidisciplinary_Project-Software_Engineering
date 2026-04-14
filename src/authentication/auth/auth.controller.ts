@@ -2,7 +2,7 @@ import { Body, Controller, Post, Headers, Req, Res, UseGuards, Request, Get, Que
 import { AuthService } from './auth.service';
 import { RegisterDTO, LoginDTO, ResetPasswordDTO } from './dto';
 import { Response } from 'express';
-import { Public } from './decorators/customize';
+import { Public } from '../../common/decorators/customize';
 import { UnauthorizedException } from '../../common/exception';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';

@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { ForbiddenException } from '../../../common/exception';
+import { ForbiddenException } from '../exception';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles';
 

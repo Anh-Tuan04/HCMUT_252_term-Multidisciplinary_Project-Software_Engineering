@@ -1,5 +1,5 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
-import { UnauthorizedException } from '../../../common/exception';
+import { UnauthorizedException } from '../exception';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/customize';
 import { Reflector } from '@nestjs/core';

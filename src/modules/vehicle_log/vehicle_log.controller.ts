@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { VehicleLogService } from './vehicle_log.service';
-import { Roles } from '../../authentication/auth/decorators/roles';
+import { Roles } from '../../common/decorators/roles';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
