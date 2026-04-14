@@ -8,6 +8,7 @@ import { AppExceptionFilter } from './common/filters/app.exception.filter';
 import { TransformInterceptor } from './common/filters/transform.interceptor';
 import { join } from 'path';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 const bootstrap = async() =>{
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(join(__dirname, '..', '..', 'public'));
@@ -40,7 +41,6 @@ const bootstrap = async() =>{
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  console.log('Swagger document created');
   SwaggerModule.setup('docs', app, document, {
     useGlobalPrefix: true,
     swaggerOptions: {
@@ -48,7 +48,7 @@ const bootstrap = async() =>{
     },
   });
 
-
+  app.use(helmet());
   await app.listen(process.env.PORT ?? 8080);
   if (module.hot) {
     module.hot.accept();

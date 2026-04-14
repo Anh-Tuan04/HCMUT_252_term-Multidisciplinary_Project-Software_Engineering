@@ -1,4 +1,3 @@
-import { SlotHistory } from './../../../node_modules/.prisma/client/index.d';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AdminUpdateParkingLotDTO, ChangeSlotDeviceDTO, CreateParkingSlotDTO, SensorUpdateParkingLotDTO } from './dto';
@@ -6,12 +5,14 @@ import { BadRequestException, NotFoundException } from '../../common/exception';
 import { ParkingSlot, UpdateParkingSlotDTO } from '../../interfaces';
 import { SlotHistoryAction, SlotStatus } from '@prisma/client';
 import { VehicleLogService } from '../vehicle_log/vehicle_log.service';
+import { ParkingSlotGateway } from './parking_slot.gateway';
 
 @Injectable()
 export class ParkingSlotService {
     constructor(
         private prisma: PrismaService,
         private readonly vehicleLogService: VehicleLogService,
+        private readonly parkingGateway: ParkingSlotGateway
     ) {}
 
     private async updateStatus(id: number, lotId: number, name: string, oldStatus: SlotStatus, newStatus: SlotStatus): Promise<UpdateParkingSlotDTO> {
@@ -21,7 +22,7 @@ export class ParkingSlotService {
                 data: { status: newStatus },
             });
             await this.vehicleLogService.recordByStatusTransition(+id, oldStatus, newStatus);
-            return {
+            const result = {
                 changed: true,
                 id: +id,
                 lot_id: lotId,
@@ -30,6 +31,9 @@ export class ParkingSlotService {
                 oldStatus,
                 newStatus: newStatus
             };
+            this.parkingGateway.server.emit('slotStatusUpdated', result);
+
+            return result;
         }
         return {
             changed: false,

@@ -10,7 +10,7 @@ import { ParkingLotModule } from './modules/parking_lot/parking_lot.module';
 import { ParkingSlotModule } from './modules/parking_slot/parking_slot.module';
 import { UserModule } from './modules/user/user.module';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './authentication/auth/guards';
+import { JwtAuthGuard } from './common/guards';
 import { SlotHistoryModule } from './modules/slot_history/slot_history.module';
 import { IotDeviceModule } from './modules/iot_device/iot_device.module';
 
