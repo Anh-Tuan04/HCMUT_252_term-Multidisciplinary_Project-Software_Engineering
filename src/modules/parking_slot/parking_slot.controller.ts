@@ -5,6 +5,7 @@ import { Roles } from '../../common/decorators/roles';
 import { Role } from '@prisma/client';
 import { Public } from '../../common/decorators/customize';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('Parking Slots')
 @Controller('parking-slots')
@@ -54,6 +55,7 @@ export class ParkingSlotController {
 
   // Sensor update parking slot status
   @Post('/sensor')
+  @SkipThrottle()
   @Public()
   async sensorUpdateParkingSlotStatus(@Body() dto: SensorUpdateParkingLotDTO) {
     const updatedSlot = await this.parkingSlotService.sensorUpdateParkingSlotStatus(dto);

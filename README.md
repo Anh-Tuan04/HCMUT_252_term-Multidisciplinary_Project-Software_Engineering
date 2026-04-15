@@ -131,7 +131,7 @@ sequenceDiagram
 ```bash
 git clone https://github.com/Anh-Tuan04/HCMUT_252_term-Multidisciplinary_Project-Software_Engineering.git
 git checkout nestjs
-npm install
+npm install --legacy-peer-deps
 ```
 
 ### 4.3 Start MySQL with Docker Compose

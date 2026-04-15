@@ -13,9 +13,16 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards';
 import { SlotHistoryModule } from './modules/slot_history/slot_history.module';
 import { IotDeviceModule } from './modules/iot_device/iot_device.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      }
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -38,6 +45,10 @@ import { IotDeviceModule } from './modules/iot_device/iot_device.module';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
     }
   ]
 })

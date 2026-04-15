@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as hbs from 'handlebars';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 const resolveVerifiedTemplatePath = () => {
   const candidates = [
@@ -33,6 +34,8 @@ export class AuthController {
   // REGISTER
     @Post('register')
     @Public()
+   // Giới hạn 1 lần đăng ký trong 2 phút cho mỗi IP
+    @Throttle({ default: { limit: 1, ttl: 120000 } })
     async register(@Body() body: RegisterDTO) {
       await this.authService.register(body);
       return {
@@ -141,6 +144,8 @@ export class AuthController {
 
     // VERIFY EMAIL
     @Get('verify')
+    // Giới hạn 1 lần đăng ký trong 2 phút cho mỗi IP
+    @Throttle({ default: { limit: 1, ttl: 120000 } })
     @Public()
     async verify(
       @Query('token') token: string,
@@ -162,6 +167,8 @@ export class AuthController {
 
     // RESEND VERIFY EMAIL
     @Post('resend')
+    // Giới hạn 1 lần gửi lại email xác thực trong 5 phút cho mỗi IP
+    @Throttle({ default: { limit: 1, ttl: 300000 } })
     @Public()
     async resend(@Body('email') email: string) {
       await this.authService.resendVerificationEmail(email);
@@ -173,6 +180,8 @@ export class AuthController {
 
     // SEND RESET PASSWORD
     @Post('send-reset-password')
+    // Giới hạn 1 lần gửi email reset password trong 5 phút cho mỗi IP
+    @Throttle({ default: { limit: 1, ttl: 300000 } })
     @Public()
     async sendResetPassword(@Body('email') email: string) {
       await this.authService.sendPasswordResetEmail(email);
