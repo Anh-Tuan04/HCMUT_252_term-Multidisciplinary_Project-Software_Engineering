@@ -1,19 +1,19 @@
 import Navigo from 'navigo';
 import './shared/components/Global.css';
+import AuthSessionService from './shared/services/AuthSessionService.js';
 
 const router = new Navigo("/", { hash: true });
 const appContainer = document.getElementById('app');
 
-// Biến lưu controller hiện tại để dọn dẹp
 let currentController = null;
 
 const renderRoute = async (importFactory) => {
-    // 1. Dọn dẹp trang cũ
+    // Clean old controller
     if (currentController && currentController.cleanup) {
         currentController.cleanup();
     }
 
-    // 2. Tải trang mới
+    // Load new page
     const module = await importFactory();
     const controller = Object.values(module)[0]; 
     
@@ -21,15 +21,47 @@ const renderRoute = async (importFactory) => {
     controller.init(appContainer, router);
 };
 
+const renderProtectedRoute = (importFactory) => {
+    if (!AuthSessionService.isAuthenticated()) {
+        router.navigate('/auth/login');
+        return;
+    }
+
+    renderRoute(importFactory);
+};
+
 router
   .on('/', () => {
-      renderRoute(() => import('./features/MapPage/MapPage.controller.js'));
+      router.navigate('/auth');
+  })
+  .on('/auth', () => {
+      renderRoute(() => import('./features/AuthenticationPage/AuthenticationPage.controller.js'));
+  })
+  .on('/auth/login', () => {
+      renderRoute(() => import('./features/AuthenticationPage/SignInPage/SignInPage.controller.js'));
+  })
+  .on('/auth/signup', () => {
+      renderRoute(() => import('./features/AuthenticationPage/SignUpPage/SignUpPage.controller.js'));
+  })
+  .on('/auth/forgot', () => {
+      renderRoute(() => import('./features/AuthenticationPage/ForgotPasswordPage/ForgotPasswordPage.controller.js'));
+  })
+  .on('/auth/reset/verify', () => {
+      renderRoute(() => import('./features/AuthenticationPage/ResetPasswordPage/ResetPasswordPage.controller.js'));
+  })
+  .on('/auth/reset/password', () => {
+      renderRoute(() => import('./features/AuthenticationPage/ResetPasswordPage/ResetPasswordPage.controller.js'));
   })
   .on('/map', () => {
-      renderRoute(() => import('./features/MapPage/MapPage.controller.js'));
+      renderProtectedRoute(() => import('./features/MapPage/MapPage.controller.js'));
   })
   .on('/dashboard', () => {
+      if (!AuthSessionService.isAuthenticated()) {
+          router.navigate('/auth/login');
+          return;
+      }
+
       appContainer.innerHTML = '<h1>Dashboard</h1>';
-      currentController = null; // Reset nếu trang này chưa có controller
+      currentController = null;
   })
     .resolve();
