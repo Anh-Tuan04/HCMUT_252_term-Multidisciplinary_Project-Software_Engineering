@@ -97,21 +97,29 @@ const handleVerifyCodeSubmit = async (event) => {
 		const request = ResetPasswordPageModel.createVerificationCodeRequest({ email, code });
 		const response = await ResetPasswordPageModel.submitVerificationCode(request);
 
-		if (!response['email is existed']) {
-			ResetPasswordPageView.setFeedback(containerRef, 'Email khong ton tai trong he thong.', 'error');
-			return;
-		}
-
 		const verifyStatus = Number(response['code is valid']);
 
 		if (verifyStatus === ResetPasswordPageModel.VerificationCodeStatus.VALID) {
-			ResetPasswordPageView.setFeedback(containerRef, 'Ma hop le. Dang chuyen sang buoc dat lai mat khau...', 'success');
+			ResetPasswordPageView.setFeedback(
+				containerRef,
+				response?.message || 'Ma hop le. Dang chuyen sang buoc dat lai mat khau...',
+				'success'
+			);
 			scheduleRedirect('/auth/reset/password');
 			return;
 		}
 
 		if (verifyStatus === ResetPasswordPageModel.VerificationCodeStatus.EXPIRED) {
 			ResetPasswordPageView.setFeedback(containerRef, 'Ma da het han. Vui long gui lai ma moi.', 'warning');
+			return;
+		}
+
+		if (!response.success) {
+			ResetPasswordPageView.setFeedback(
+				containerRef,
+				response?.message || 'Ma xac nhan khong dung.',
+				'error'
+			);
 			return;
 		}
 
@@ -141,8 +149,8 @@ const handleResendCode = async () => {
 	try {
 		const response = await ResetPasswordPageModel.resendVerificationCode(email);
 
-		if (!response['email is existed']) {
-			ResetPasswordPageView.setFeedback(containerRef, 'Email khong ton tai trong he thong.', 'error');
+		if (!response.success) {
+			ResetPasswordPageView.setFeedback(containerRef, response?.message || 'Khong the gui lai ma.', 'error');
 			return;
 		}
 
@@ -192,13 +200,18 @@ const handleResetPasswordSubmit = async (event) => {
 	try {
 		const request = ResetPasswordPageModel.createResetPasswordRequest({
 			email,
-			newPassword: formData.newPassword
+			newPassword: formData.newPassword,
+			confirmPassword: formData.confirmPassword
 		});
 
 		const response = await ResetPasswordPageModel.submitResetPassword(request);
 
-		if (!response['reset password successfully']) {
-			ResetPasswordPageView.setFeedback(containerRef, 'Dat lai mat khau that bai. Vui long xac thuc ma va thu lai.', 'error');
+		if (!response.success || !response['reset password successfully']) {
+			ResetPasswordPageView.setFeedback(
+				containerRef,
+				response?.message || 'Dat lai mat khau that bai. Vui long xac thuc ma va thu lai.',
+				'error'
+			);
 			return;
 		}
 

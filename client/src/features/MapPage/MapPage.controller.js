@@ -5,12 +5,19 @@ import SocketService from '../../shared/services/SocketService.js';
 import AuthSessionService from '../../shared/services/AuthSessionService.js';
 
 const EVENTS = {
-  JOIN_LOT: 'join_lot',
-  SLOT_UPDATE: 'SLOT_UPDATE'
+  SLOT_UPDATE: 'slotStatusUpdated'
 };
 
 const LOT_ID = Number(import.meta.env.VITE_LOT_ID || 1);
-const API_BASE = import.meta.env.VITE_API_BASE || import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+const SERVER_ORIGIN = (
+  import.meta.env.VITE_SERVER_URL
+  || 'http://localhost:8080'
+).replace(/\/+$/, '');
+
+const API_BASE = (
+  import.meta.env.VITE_API_BASE
+  || `${SERVER_ORIGIN}/api/v1`
+).replace(/\/+$/, '');
 
 const SERVER_TO_UI_STATUS = {
   AVAILABLE: 0,
@@ -51,21 +58,51 @@ const startClockTicker = () => {
   }, 1000);
 };
 
+const handleUnauthorized = () => {
+  AuthSessionService.signOut();
+
+  if (routerRef) {
+    routerRef.navigate('/auth/login');
+  }
+};
+
 const toUiStatus = (serverStatus) => {
   if (typeof serverStatus === 'number') {
     return Number.isFinite(serverStatus) ? serverStatus : 0;
   }
+
   return SERVER_TO_UI_STATUS[serverStatus] ?? 0;
 };
 
 const fetchFullState = async () => {
-  const response = await fetch(`${API_BASE}/api/slots?lotId=${LOT_ID}`);
+  const accessToken = AuthSessionService.getAccessToken();
+  if (!accessToken) {
+    handleUnauthorized();
+    throw new Error('Missing access token');
+  }
+
+  const response = await fetch(`${API_BASE}/parking-lots/${LOT_ID}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    credentials: 'include'
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    handleUnauthorized();
+    throw new Error('Unauthorized');
+  }
+
   if (!response.ok) throw new Error(`Failed to fetch slots: ${response.status}`);
 
   const json = await response.json();
   if (!json?.success) return;
 
-  const slots = Array.isArray(json?.data?.slots) ? json.data.slots : [];
+  const slots = Array.isArray(json?.data?.parkingLot?.slots)
+    ? json.data.parkingLot.slots
+    : [];
+
   mapState = cloneInitialState();
 
   slots.forEach((slot) => {
@@ -79,11 +116,11 @@ const fetchFullState = async () => {
 };
 
 const handleSlotUpdate = (data) => {
-  const lotId = Number(data?.lot_id);
+  const lotId = Number(data?.lot_id ?? data?.lotId);
   if (Number.isFinite(lotId) && lotId !== LOT_ID) return;
 
   const id = Number(data?.id);
-  const status = toUiStatus(data?.newStatus);
+  const status = toUiStatus(data?.newStatus ?? data?.status);
   if (!Number.isFinite(id) || !Number.isFinite(status)) return;
 
   mapState = updateSlotStatus(mapState, id, status);
@@ -92,10 +129,6 @@ const handleSlotUpdate = (data) => {
 };
 
 const handleConnect = async () => {
-  if (!socketRef) return;
-
-  socketRef.emit(EVENTS.JOIN_LOT, LOT_ID);
-
   if (containerRef) {
     MapView.setFeedback(containerRef, 'Da ket noi socket. Dang dong bo snapshot bai xe...', 'info');
   }
@@ -112,6 +145,14 @@ const handleConnect = async () => {
     if (containerRef) {
       MapView.setFeedback(containerRef, 'Khong the lay snapshot tu server. Vui long thu dong bo lai.', 'error');
     }
+  }
+};
+
+const handleSocketConnectError = (error) => {
+  console.error('Socket connect error:', error);
+
+  if (containerRef) {
+    MapView.setFeedback(containerRef, 'Khong the ket noi realtime. Vui long kiem tra AccessToken.', 'error');
   }
 };
 
@@ -141,7 +182,9 @@ const handleLogout = () => {
 
 export const MapController = {
   init: (container, router) => {
-    if (!AuthSessionService.isAuthenticated()) {
+    const session = AuthSessionService.getSession();
+
+    if (!session?.isAuthenticated || !session?.accessToken) {
       if (router) {
         router.navigate('/auth/login');
       }
@@ -155,7 +198,6 @@ export const MapController = {
 
     mapState = cloneInitialState();
 
-    const session = AuthSessionService.getSession();
     MapView.renderLayout(containerRef, mapState, session);
     MapView.setSummary(containerRef, mapState.slots);
     MapView.setCurrentTime(containerRef, new Date());
@@ -163,9 +205,10 @@ export const MapController = {
     MapView.bindLogout(containerRef, handleLogout);
     startClockTicker();
 
-    socketRef = SocketService.connect();
+    socketRef = SocketService.connect(session.accessToken);
 
     socketRef.on('connect', handleConnect);
+    socketRef.on('connect_error', handleSocketConnectError);
     socketRef.on(EVENTS.SLOT_UPDATE, handleSlotUpdate);
 
     MapView.setFeedback(containerRef, 'Dang ket noi he thong realtime...', 'info');
@@ -186,9 +229,11 @@ export const MapController = {
 
     if (socketRef) {
       socketRef.off('connect', handleConnect);
+      socketRef.off('connect_error', handleSocketConnectError);
       socketRef.off(EVENTS.SLOT_UPDATE, handleSlotUpdate);
     }
 
+    SocketService.disconnect();
     socketRef = null;
 
     containerRef = null;

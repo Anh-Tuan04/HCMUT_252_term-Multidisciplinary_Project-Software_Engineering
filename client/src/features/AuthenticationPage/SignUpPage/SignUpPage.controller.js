@@ -36,6 +36,16 @@ const handleSubmit = async (event) => {
 		return;
 	}
 
+	const isStrongPassword = /((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/.test(formData.password);
+	if (!isStrongPassword) {
+		SignUpPageView.setFeedback(
+			containerRef,
+			'Mat khau can co chu hoa, chu thuong, so va ky tu dac biet.',
+			'warning'
+		);
+		return;
+	}
+
 	SignUpPageView.setSubmitting(containerRef, true);
 	SignUpPageView.setFeedback(containerRef, 'Dang tao tai khoan...', 'info');
 
@@ -43,17 +53,17 @@ const handleSubmit = async (event) => {
 		const request = SignUpPageModel.createSignUpRequest(formData);
 		const response = await SignUpPageModel.submitSignUp(request);
 
-		if (response['email is existed']) {
-			SignUpPageView.setFeedback(containerRef, 'Email nay da ton tai. Vui long dung email khac.', 'error');
+		if (!response.success) {
+			const errorMessage = response?.message || 'Dang ky that bai. Vui long thu lai.';
+			SignUpPageView.setFeedback(containerRef, errorMessage, 'error');
 			return;
 		}
 
-		if (!response['sign up successfully']) {
-			SignUpPageView.setFeedback(containerRef, 'Dang ky that bai. Vui long thu lai.', 'error');
-			return;
-		}
-
-		SignUpPageView.setFeedback(containerRef, 'Dang ky thanh cong. Dang chuyen sang trang dang nhap...', 'success');
+		SignUpPageView.setFeedback(
+			containerRef,
+			'Dang ky thanh cong. Vui long kiem tra email de xac thuc truoc khi dang nhap.',
+			'success'
+		);
 
 		clearRuntime();
 		redirectTimeoutId = window.setTimeout(() => {

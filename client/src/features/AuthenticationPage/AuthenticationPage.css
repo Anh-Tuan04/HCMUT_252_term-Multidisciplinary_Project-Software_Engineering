@@ -1,4 +1,176 @@
-@import url('./style_home.css');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap');
+
+:root {
+	--bg-start: #e9f8ff;
+	--bg-end: #fff2e1;
+	--card-bg: rgba(255, 255, 255, 0.82);
+	--card-border: rgba(255, 255, 255, 0.95);
+	--text-main: #12213f;
+	--text-muted: #4a5876;
+	--primary: #1da7d1;
+	--primary-strong: #0d86ac;
+	--secondary: #f29d38;
+	--secondary-strong: #d77f16;
+	--shadow-main: 0 24px 45px rgba(18, 33, 63, 0.16);
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body {
+	width: 100%;
+	height: 100%;
+	font-family: 'Be Vietnam Pro', sans-serif;
+	color: var(--text-main);
+}
+
+body {
+	background: radial-gradient(circle at 20% 25%, #c8f0ff 0%, transparent 36%),
+		radial-gradient(circle at 82% 0%, #ffe3c7 0%, transparent 34%),
+		linear-gradient(130deg, var(--bg-start), var(--bg-end));
+}
+
+.page-wrapper {
+	width: 100%;
+	height: 100%;
+	min-width: 820px;
+	min-height: 620px;
+	padding: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.hero-card {
+	width: min(760px, 100%);
+	border-radius: 30px;
+	border: 1px solid var(--card-border);
+	background: var(--card-bg);
+	backdrop-filter: blur(8px);
+	box-shadow: var(--shadow-main);
+	padding: clamp(30px, 4.5vw, 56px);
+	display: flex;
+	flex-direction: column;
+	gap: 22px;
+	text-align: center;
+	animation: card-enter 560ms ease-out both;
+}
+
+.badge {
+	width: fit-content;
+	margin: 0 auto;
+	padding: 9px 16px;
+	border-radius: 999px;
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #0f4f67;
+	background: linear-gradient(90deg, #c7f2ff, #ffe5c9);
+}
+
+.main-title {
+	font-family: 'Sora', sans-serif;
+	font-size: clamp(34px, 5vw, 58px);
+	line-height: 1.18;
+	letter-spacing: 0.01em;
+}
+
+.main-subtitle {
+	font-size: clamp(16px, 2vw, 20px);
+	line-height: 1.65;
+	color: var(--text-muted);
+	max-width: 58ch;
+	margin: 0 auto;
+}
+
+.action-group {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+	margin-top: 14px;
+}
+
+.btn {
+	min-height: 62px;
+	border-radius: 16px;
+	font-size: 20px;
+	font-weight: 700;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.btn:hover {
+	transform: translateY(-2px);
+	filter: brightness(0.98);
+}
+
+.btn-primary {
+	color: #ffffff;
+	background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+	box-shadow: 0 14px 24px rgba(13, 134, 172, 0.28);
+}
+
+.btn-secondary {
+	color: #2f220f;
+	background: linear-gradient(135deg, #ffd39b, var(--secondary));
+	box-shadow: 0 14px 24px rgba(215, 127, 22, 0.22);
+}
+
+.signup-text {
+	font-size: 16px;
+	font-weight: 500;
+	color: var(--text-muted);
+}
+
+@keyframes card-enter {
+	from {
+		opacity: 0;
+		transform: translateY(14px) scale(0.985);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@media (max-width: 860px), (max-height: 650px) {
+	.page-wrapper {
+		overflow: auto;
+		align-items: flex-start;
+	}
+}
+
+@media (max-width: 680px) {
+	.page-wrapper {
+		min-width: 0;
+		padding: 16px;
+	}
+
+	.hero-card {
+		width: 100%;
+		border-radius: 22px;
+		gap: 18px;
+		padding: 24px 18px;
+	}
+
+	.action-group {
+		grid-template-columns: 1fr;
+	}
+
+	.btn {
+		min-height: 58px;
+		font-size: 18px;
+	}
+}
 
 .auth-feedback {
 	min-height: 22px;

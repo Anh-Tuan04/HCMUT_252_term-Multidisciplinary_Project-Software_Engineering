@@ -2,21 +2,48 @@
 import { io } from "socket.io-client";
 
 let socket = null;
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
+let socketAuthToken = '';
+
+const SOCKET_URL = (
+    import.meta.env.VITE_SOCKET_URL
+    || import.meta.env.VITE_SERVER_URL
+    || "http://localhost:8080"
+).replace(/\/+$/, '');
 
 const SocketService = {
-    connect: () => {
-        if (!socket) {
-            socket = io(SOCKET_URL);
-            console.log("Connected to Parking Server");
+    connect: (accessToken) => {
+        const safeToken = String(accessToken ?? '').trim();
+
+        if (!safeToken) {
+            throw new Error('Missing access token for socket connection');
         }
+
+        const shouldReconnect = !socket || socketAuthToken !== safeToken;
+
+        if (shouldReconnect) {
+            if (socket) {
+                socket.disconnect();
+            }
+
+            socketAuthToken = safeToken;
+            socket = io(`${SOCKET_URL}/parking`, {
+                auth: {
+                    token: `Bearer ${safeToken}`
+                },
+                transports: ['websocket', 'polling']
+            });
+        }
+
         return socket;
     },
+
     disconnect: () => {
         if (socket) {
             socket.disconnect();
             socket = null;
         }
+
+        socketAuthToken = '';
     }
 };
 

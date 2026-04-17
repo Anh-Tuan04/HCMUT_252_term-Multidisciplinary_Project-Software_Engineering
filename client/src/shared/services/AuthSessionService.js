@@ -22,6 +22,8 @@ const readSession = () => {
     return {
         isAuthenticated: true,
         email: typeof parsed.email === 'string' ? parsed.email : '',
+        accessToken: typeof parsed.accessToken === 'string' ? parsed.accessToken : '',
+        user: parsed.user && typeof parsed.user === 'object' ? parsed.user : null,
         signedAt: typeof parsed.signedAt === 'number' ? parsed.signedAt : Date.now()
     };
 };
@@ -35,12 +37,20 @@ const clearSession = () => {
 };
 
 const AuthSessionService = {
-    signIn: (email) => {
+    signIn: ({ email, accessToken, user }) => {
         const safeEmail = String(email ?? '').trim().toLowerCase();
+        const safeAccessToken = String(accessToken ?? '').trim();
+
+        if (!safeEmail || !safeAccessToken) {
+            clearSession();
+            return;
+        }
 
         writeSession({
             isAuthenticated: true,
             email: safeEmail,
+            accessToken: safeAccessToken,
+            user: user && typeof user === 'object' ? user : null,
             signedAt: Date.now()
         });
     },
@@ -51,7 +61,9 @@ const AuthSessionService = {
 
     isAuthenticated: () => Boolean(readSession()),
 
-    getSession: () => readSession()
+    getSession: () => readSession(),
+
+    getAccessToken: () => readSession()?.accessToken ?? ''
 };
 
 export default AuthSessionService;

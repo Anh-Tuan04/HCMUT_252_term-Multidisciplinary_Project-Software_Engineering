@@ -33,17 +33,17 @@ const handleSubmit = async (event) => {
 		const request = SignInPageModel.createLoginRequest(formData);
 		const response = await SignInPageModel.submitLogin(request);
 
-		if (!response['email is existed']) {
-			SignInPageView.setFeedback(containerRef, 'Email khong ton tai trong he thong.', 'error');
+		if (!response.success || !response.accessToken) {
+			const errorMessage = response?.message || 'Dang nhap that bai. Vui long thu lai.';
+			SignInPageView.setFeedback(containerRef, errorMessage, 'error');
 			return;
 		}
 
-		if (!response['password is correct']) {
-			SignInPageView.setFeedback(containerRef, 'Mat khau khong dung.', 'error');
-			return;
-		}
-
-		AuthSessionService.signIn(formData.email);
+		AuthSessionService.signIn({
+			email: response?.user?.email || formData.email,
+			accessToken: response.accessToken,
+			user: response.user
+		});
 
 		SignInPageView.setFeedback(containerRef, 'Dang nhap thanh cong. Dang chuyen den trang ban do...', 'success');
 

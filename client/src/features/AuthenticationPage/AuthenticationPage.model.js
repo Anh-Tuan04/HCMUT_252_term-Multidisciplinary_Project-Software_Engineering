@@ -1,288 +1,315 @@
-const USERS_STORAGE_KEY = 'smart-parking-auth-users-v1';
-const RECOVERY_STORAGE_KEY = 'smart-parking-auth-recovery-v1';
+const RECOVERY_STORAGE_KEY = 'smart-parking-auth-recovery-v2';
+const RECOVERY_TTL_MS = 30 * 60 * 1000;
 
-const NETWORK_DELAY_MS = 280;
-const VERIFICATION_CODE_TTL_MS = 2 * 60 * 1000;
+const SERVER_ORIGIN = (
+    import.meta.env.VITE_SERVER_URL
+    || 'http://localhost:8080'
+).replace(/\/+$/, '');
 
-const defaultUsers = [
-	{
-		firstName: 'Demo',
-		lastName: 'User',
-		username: 'demouser',
-		email: 'user@smartparking.com',
-		password: '123456',
-		role: 'user'
-	},
-	{
-		firstName: 'Demo',
-		lastName: 'Manager',
-		username: 'manager01',
-		email: 'manager@smartparking.com',
-		password: '123456',
-		role: 'manager'
-	}
-];
+const API_BASE = (
+    import.meta.env.VITE_API_BASE
+    || `${SERVER_ORIGIN}/api/v1`
+).replace(/\/+$/, '');
 
-const wait = (ms) => new Promise((resolve) => {
-	window.setTimeout(resolve, ms);
-});
-
-const safeParse = (value, fallbackValue) => {
-	try {
-		return JSON.parse(value);
-	} catch {
-		return fallbackValue;
-	}
+const safeParse = (rawValue, fallbackValue) => {
+    try {
+        return JSON.parse(rawValue);
+    } catch {
+        return fallbackValue;
+    }
 };
 
 const normalizeText = (value) => String(value ?? '').trim();
-const normalizeEmail = (email) => normalizeText(email).toLowerCase();
+const normalizeEmail = (value) => normalizeText(value).toLowerCase();
 
-const readUsers = () => {
-	const parsed = safeParse(localStorage.getItem(USERS_STORAGE_KEY), []);
-	return Array.isArray(parsed) ? parsed : [];
+const toErrorMessage = (result, fallbackMessage) => {
+    const firstError = Array.isArray(result?.errors) ? result.errors[0] : '';
+    return firstError || result?.message || fallbackMessage;
 };
 
-const writeUsers = (users) => {
-	localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+const requestApi = async ({ method, path, body, accessToken }) => {
+    try {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        if (accessToken) {
+            headers.Authorization = `Bearer ${accessToken}`;
+        }
+
+        const response = await fetch(`${API_BASE}${path}`, {
+            method,
+            headers,
+            credentials: 'include',
+            body: body ? JSON.stringify(body) : undefined
+        });
+
+        const json = await response.json().catch(() => null);
+
+        if (!response.ok || json?.success === false) {
+            const errors = Array.isArray(json?.errors)
+                ? json.errors
+                : [json?.message || `Request failed (${response.status})`];
+
+            return {
+                success: false,
+                status: response.status,
+                message: errors[0],
+                errors,
+                data: json?.data ?? null
+            };
+        }
+
+        return {
+            success: true,
+            status: response.status,
+            message: json?.message || 'Success',
+            errors: [],
+            data: json?.data ?? null
+        };
+    } catch (error) {
+        console.error(`API request error [${method} ${path}]`, error);
+
+        return {
+            success: false,
+            status: 0,
+            message: 'Khong the ket noi den server. Vui long kiem tra backend.',
+            errors: ['Khong the ket noi den server. Vui long kiem tra backend.'],
+            data: null
+        };
+    }
 };
 
 const readRecoverySession = () => {
-	const parsed = safeParse(localStorage.getItem(RECOVERY_STORAGE_KEY), null);
-	return parsed && typeof parsed === 'object' ? parsed : null;
+    const parsed = safeParse(localStorage.getItem(RECOVERY_STORAGE_KEY), null);
+    if (!parsed || typeof parsed !== 'object') {
+        return null;
+    }
+
+    return {
+        email: normalizeEmail(parsed.email),
+        code: normalizeText(parsed.code),
+        verified: Boolean(parsed.verified),
+        expiresAt: Number(parsed.expiresAt) || 0
+    };
 };
 
 const writeRecoverySession = (session) => {
-	localStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(session));
+    localStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify(session));
 };
 
 const clearRecoverySession = () => {
-	localStorage.removeItem(RECOVERY_STORAGE_KEY);
+    localStorage.removeItem(RECOVERY_STORAGE_KEY);
 };
 
-const findUserByEmail = (users, email) => {
-	const normalizedEmail = normalizeEmail(email);
-	return users.find((user) => normalizeEmail(user.email) === normalizedEmail) ?? null;
+const persistRecoverySession = (email, code = '', verified = false) => {
+    writeRecoverySession({
+        email: normalizeEmail(email),
+        code: normalizeText(code),
+        verified: Boolean(verified),
+        expiresAt: Date.now() + RECOVERY_TTL_MS
+    });
 };
-
-const generateVerificationCode = () => {
-	const code = 100000 + Math.floor(Math.random() * 900000);
-	return String(code);
-};
-
-const ensureDefaultUsers = () => {
-	if (readUsers().length > 0) return;
-	writeUsers(defaultUsers);
-};
-
-ensureDefaultUsers();
 
 export const VerificationCodeStatus = Object.freeze({
-	VALID: 0,
-	INVALID: 1,
-	EXPIRED: 2
+    VALID: 0,
+    INVALID: 1,
+    EXPIRED: 2
 });
 
 export const buildLoginRequest = ({ email, password }) => ({
-	email: normalizeEmail(email),
-	password: String(password ?? '')
+    email: normalizeEmail(email),
+    password: String(password ?? '')
 });
 
 export const buildSignUpRequest = ({ firstName, lastName, username, email, password, role }) => ({
-	'first name': normalizeText(firstName),
-	'last name': normalizeText(lastName),
-	username: normalizeText(username),
-	email: normalizeEmail(email),
-	password: String(password ?? ''),
-	role: role === 'manager' ? 'manager' : 'user'
+    firstName: normalizeText(firstName),
+    lastName: normalizeText(lastName),
+    username: normalizeText(username),
+    email: normalizeEmail(email),
+    password: String(password ?? ''),
+    role: role === 'manager' ? 'manager' : 'user'
 });
 
 export const buildForgotPasswordRequest = ({ email }) => ({
-	email: normalizeEmail(email)
+    email: normalizeEmail(email)
 });
 
 export const buildVerificationCodeRequest = ({ email, code }) => ({
-	email: normalizeEmail(email),
-	code: normalizeText(code)
+    email: normalizeEmail(email),
+    code: normalizeText(code)
 });
 
-export const buildResetPasswordRequest = ({ email, newPassword }) => ({
-	email: normalizeEmail(email),
-	'new password': String(newPassword ?? '')
+export const buildResetPasswordRequest = ({ email, newPassword, code, confirmPassword }) => ({
+    email: normalizeEmail(email),
+    code: normalizeText(code),
+    newPassword: String(newPassword ?? ''),
+    confirmPassword: String(confirmPassword ?? newPassword ?? '')
 });
 
 export const AuthApi = {
-	login: async (request) => {
-		await wait(NETWORK_DELAY_MS);
+    login: async (request) => {
+        const result = await requestApi({
+            method: 'POST',
+            path: '/auth/login',
+            body: {
+                email: normalizeEmail(request?.email),
+                password: String(request?.password ?? '')
+            }
+        });
 
-		const users = readUsers();
-		const email = normalizeEmail(request?.email);
-		const password = String(request?.password ?? '');
-		const user = findUserByEmail(users, email);
+        if (!result.success) {
+            return {
+                success: false,
+                message: result.message,
+                errors: result.errors,
+                accessToken: '',
+                user: null
+            };
+        }
 
-		return {
-			'email is existed': Boolean(user),
-			'password is correct': Boolean(user && user.password === password)
-		};
-	},
+        return {
+            success: true,
+            message: result.message,
+            errors: [],
+            accessToken: String(result?.data?.access_token ?? ''),
+            user: result?.data?.user ?? null
+        };
+    },
 
-	signUp: async (request) => {
-		await wait(NETWORK_DELAY_MS);
+    signUp: async (request) => {
+        const result = await requestApi({
+            method: 'POST',
+            path: '/auth/register',
+            body: {
+                firstName: normalizeText(request?.firstName),
+                lastName: normalizeText(request?.lastName),
+                email: normalizeEmail(request?.email),
+                password: String(request?.password ?? '')
+            }
+        });
 
-		const users = readUsers();
-		const email = normalizeEmail(request?.email);
-		const emailExists = Boolean(findUserByEmail(users, email));
+        return {
+            success: result.success,
+            message: result.message,
+            errors: result.errors,
+            'email is existed': !result.success && /email/i.test(result.message),
+            'sign up successfully': result.success
+        };
+    },
 
-		if (emailExists) {
-			return {
-				'email is existed': true,
-				'sign up successfully': false
-			};
-		}
+    forgotPassword: async (request) => {
+        const email = normalizeEmail(request?.email);
+        const result = await requestApi({
+            method: 'POST',
+            path: '/auth/send-reset-password',
+            body: { email }
+        });
 
-		users.push({
-			firstName: normalizeText(request?.['first name']),
-			lastName: normalizeText(request?.['last name']),
-			username: normalizeText(request?.username),
-			email,
-			password: String(request?.password ?? ''),
-			role: request?.role === 'manager' ? 'manager' : 'user'
-		});
+        if (result.success) {
+            persistRecoverySession(email, '', false);
+        }
 
-		writeUsers(users);
+        return {
+            success: result.success,
+            message: result.message,
+            errors: result.errors,
+            'email is existed': result.success
+        };
+    },
 
-		return {
-			'email is existed': false,
-			'sign up successfully': true
-		};
-	},
+    verifyCode: async (request) => {
+        const email = normalizeEmail(request?.email);
+        const code = normalizeText(request?.code);
+        const session = readRecoverySession();
 
-	forgotPassword: async (request) => {
-		const users = readUsers();
-		const email = normalizeEmail(request?.email);
-		const user = findUserByEmail(users, email);
+        if (!session || !email || session.email !== email) {
+            return {
+                success: false,
+                message: 'Khong tim thay phien khoi phuc cho email nay.',
+                'email is existed': false,
+                'code is valid': VerificationCodeStatus.INVALID
+            };
+        }
 
-		if (user) {
-			const verificationCode = generateVerificationCode();
+        if (Date.now() > Number(session.expiresAt)) {
+            return {
+                success: false,
+                message: 'Ma xac nhan da het han. Vui long gui lai ma moi.',
+                'email is existed': true,
+                'code is valid': VerificationCodeStatus.EXPIRED
+            };
+        }
 
-			writeRecoverySession({
-				email,
-				code: verificationCode,
-				expiresAt: Date.now() + VERIFICATION_CODE_TTL_MS,
-				verified: false
-			});
+        if (!code) {
+            return {
+                success: false,
+                message: 'Vui long nhap ma xac nhan.',
+                'email is existed': true,
+                'code is valid': VerificationCodeStatus.INVALID
+            };
+        }
 
-			console.info(`[AuthMock] Sent verification code ${verificationCode} to ${email}`);
-		}
+        persistRecoverySession(email, code, true);
 
-		await wait(NETWORK_DELAY_MS);
+        return {
+            success: true,
+            message: 'Da luu ma xac nhan. He thong se kiem tra ma o buoc dat lai mat khau.',
+            'email is existed': true,
+            'code is valid': VerificationCodeStatus.VALID
+        };
+    },
 
-		return {
-			'email is existed': Boolean(user)
-		};
-	},
+    resetPassword: async (request) => {
+        const email = normalizeEmail(request?.email);
+        const session = readRecoverySession();
+        const code = normalizeText(request?.code || session?.code);
+        const newPassword = String(request?.newPassword ?? request?.['new password'] ?? '');
+        const confirmPassword = String(request?.confirmPassword ?? newPassword);
 
-	verifyCode: async (request) => {
-		await wait(NETWORK_DELAY_MS);
+        const result = await requestApi({
+            method: 'PATCH',
+            path: '/auth/reset-password',
+            body: {
+                email,
+                code,
+                newPassword,
+                confirmPassword
+            }
+        });
 
-		const users = readUsers();
-		const email = normalizeEmail(request?.email);
-		const code = normalizeText(request?.code);
-		const user = findUserByEmail(users, email);
+        if (result.success) {
+            clearRecoverySession();
+        }
 
-		if (!user) {
-			return {
-				'email is existed': false,
-				'code is valid': VerificationCodeStatus.INVALID
-			};
-		}
+        return {
+            success: result.success,
+            message: result.message,
+            errors: result.errors,
+            'sent email': email,
+            'reset password successfully': result.success
+        };
+    },
 
-		const recoverySession = readRecoverySession();
+    findUsernameByEmail: async () => ({
+        success: false,
+        message: 'Backend hien tai khong ho tro tim username theo email.',
+        errors: ['Backend hien tai khong ho tro tim username theo email.'],
+        'email is existed': false,
+        username: ''
+    }),
 
-		if (!recoverySession || recoverySession.email !== email) {
-			return {
-				'email is existed': true,
-				'code is valid': VerificationCodeStatus.INVALID
-			};
-		}
+    getRecoveryContext: () => {
+        const session = readRecoverySession();
+        if (!session) return null;
+        return session;
+    },
 
-		if (Date.now() > Number(recoverySession.expiresAt)) {
-			return {
-				'email is existed': true,
-				'code is valid': VerificationCodeStatus.EXPIRED
-			};
-		}
+    clearRecoveryContext: () => {
+        clearRecoverySession();
+    },
 
-		if (recoverySession.code !== code) {
-			return {
-				'email is existed': true,
-				'code is valid': VerificationCodeStatus.INVALID
-			};
-		}
+    getApiBase: () => API_BASE,
 
-		writeRecoverySession({
-			...recoverySession,
-			verified: true
-		});
-
-		return {
-			'email is existed': true,
-			'code is valid': VerificationCodeStatus.VALID
-		};
-	},
-
-	resetPassword: async (request) => {
-		await wait(NETWORK_DELAY_MS);
-
-		const email = normalizeEmail(request?.email);
-		const newPassword = String(request?.['new password'] ?? '');
-		const users = readUsers();
-		const userIndex = users.findIndex((user) => normalizeEmail(user.email) === email);
-		const recoverySession = readRecoverySession();
-
-		const canResetPassword =
-			userIndex >= 0
-			&& recoverySession
-			&& recoverySession.email === email
-			&& recoverySession.verified === true;
-
-		const resetSuccessfully = Boolean(canResetPassword && newPassword.length > 0);
-
-		if (resetSuccessfully) {
-			users[userIndex] = {
-				...users[userIndex],
-				password: newPassword
-			};
-			writeUsers(users);
-			clearRecoverySession();
-		}
-
-		return {
-			'sent email': email,
-			'reset password successfully': resetSuccessfully
-		};
-	},
-
-	findUsernameByEmail: async (emailValue) => {
-		await wait(NETWORK_DELAY_MS - 40);
-
-		const users = readUsers();
-		const user = findUserByEmail(users, emailValue);
-
-		return {
-			'email is existed': Boolean(user),
-			username: user?.username ?? ''
-		};
-	},
-
-	getRecoveryContext: () => {
-		const session = readRecoverySession();
-		if (!session) return null;
-
-		return {
-			email: normalizeEmail(session.email),
-			expiresAt: Number(session.expiresAt) || 0,
-			verified: Boolean(session.verified)
-		};
-	}
+    formatError: (result, fallbackMessage) => toErrorMessage(result, fallbackMessage)
 };

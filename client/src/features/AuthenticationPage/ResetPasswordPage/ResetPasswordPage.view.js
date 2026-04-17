@@ -31,13 +31,13 @@ export const ResetPasswordPageView = {
 					<section class="recover-card">
 						<p class="chip">Smart Parking</p>
 						<h1 class="main-title">Dat lai mat khau</h1>
-						<p class="sub-text">Ma xac nhan da duoc gui den E-mail cua ban.</p>
+						<p class="sub-text">Nhap ma khoi phuc duoc gui trong email de tiep tuc dat lai mat khau.</p>
 						${email ? `<p class="recovery-email">Email: <strong>${email}</strong></p>` : ''}
 
 						<form class="form-container" id="verify-code-form" novalidate>
 							<div class="input-group">
 								<label class="label-text" for="verify-code-input">Nhap ma xac nhan</label>
-								<input id="verify-code-input" type="text" class="input-field" placeholder="123456" required>
+								<input id="verify-code-input" type="text" class="input-field" placeholder="Vi du: 5dbf7f58-..." required>
 							</div>
 
 							<div class="timer-section">

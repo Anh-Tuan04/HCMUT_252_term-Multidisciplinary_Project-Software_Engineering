@@ -32,12 +32,17 @@ const handleSubmit = async (event) => {
 		const request = ForgotPasswordPageModel.createForgotPasswordRequest({ email });
 		const response = await ForgotPasswordPageModel.submitForgotPassword(request);
 
-		if (!response['email is existed']) {
-			ForgotPasswordPageView.setFeedback(containerRef, 'Email khong ton tai trong he thong.', 'error');
+		if (!response.success) {
+			const errorMessage = response?.message || 'Khong the gui ma khoi phuc luc nay.';
+			ForgotPasswordPageView.setFeedback(containerRef, errorMessage, 'error');
 			return;
 		}
 
-		ForgotPasswordPageView.setFeedback(containerRef, 'Ma xac nhan da duoc gui. Dang chuyen sang buoc xac thuc ma...', 'success');
+		ForgotPasswordPageView.setFeedback(
+			containerRef,
+			'Ma khoi phuc da duoc gui den email. Dang chuyen sang buoc nhap ma...',
+			'success'
+		);
 
 		clearRuntime();
 		redirectTimeoutId = window.setTimeout(() => {
@@ -67,8 +72,8 @@ const handleFindUsername = async () => {
 	try {
 		const response = await ForgotPasswordPageModel.findUsernameByEmail(email);
 
-		if (!response['email is existed']) {
-			ForgotPasswordPageView.setLookupFeedback(containerRef, 'Khong tim thay tai khoan cho email nay.', 'error');
+		if (!response.success) {
+			ForgotPasswordPageView.setLookupFeedback(containerRef, response.message, 'warning');
 			return;
 		}
 
