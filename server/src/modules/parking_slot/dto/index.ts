@@ -1,0 +1,1 @@
+export * from './parking_slot.dto';
