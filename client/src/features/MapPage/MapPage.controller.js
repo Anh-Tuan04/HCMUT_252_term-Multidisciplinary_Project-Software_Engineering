@@ -25,9 +25,30 @@ const SERVER_TO_UI_STATUS = {
   MAINTAIN: 2
 };
 
+const PRIVILEGED_ROLES = new Set(['ADMIN', 'MANAGER']);
+
 const cloneInitialState = () => ({
   slots: initialMapState.slots.map((slot) => ({ ...slot }))
 });
+
+const normalizeRole = (role) => String(role ?? '').trim().toUpperCase();
+
+const isPrivilegedSession = (session) => {
+  const role = normalizeRole(session?.user?.role);
+  return PRIVILEGED_ROLES.has(role);
+};
+
+const toApiErrorMessage = (result, fallbackMessage) => {
+  if (Array.isArray(result?.errors) && result.errors.length > 0) {
+    return result.errors[0];
+  }
+
+  if (typeof result?.message === 'string' && result.message.trim()) {
+    return result.message;
+  }
+
+  return fallbackMessage;
+};
 
 let mapState = cloneInitialState();
 let socketRef = null;
@@ -173,6 +194,74 @@ const handleManualRefresh = async () => {
   }
 };
 
+const requestAdminSlotStatusUpdate = async (slotId, status) => {
+  const accessToken = AuthSessionService.getAccessToken();
+  if (!accessToken) {
+    handleUnauthorized();
+    throw new Error('Missing access token');
+  }
+
+  const response = await fetch(`${API_BASE}/parking-slots/admin/${slotId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include',
+    body: JSON.stringify({ status })
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    handleUnauthorized();
+    throw new Error('Unauthorized');
+  }
+
+  const json = await response.json().catch(() => null);
+
+  if (!response.ok || json?.success === false) {
+    throw new Error(toApiErrorMessage(json, 'Cap nhat trang thai that bai.'));
+  }
+
+  return json;
+};
+
+const handleAdminSlotStatusSubmit = async (slotId, nextServerStatus) => {
+  if (!containerRef) return;
+
+  const safeSlotId = Number(slotId);
+  const targetStatus = String(nextServerStatus ?? '').trim().toUpperCase();
+
+  if (!Number.isFinite(safeSlotId) || !targetStatus) {
+    MapView.setFeedback(containerRef, 'Thong tin cap nhat khong hop le.', 'warning');
+    return;
+  }
+
+  MapView.setSlotControlLoading(containerRef, safeSlotId, true);
+  MapView.setFeedback(containerRef, `Dang cap nhat cho do P${safeSlotId}...`, 'info');
+
+  try {
+    const result = await requestAdminSlotStatusUpdate(safeSlotId, targetStatus);
+    const slotResult = result?.data?.parkingSlot ?? null;
+    const nextUiStatus = toUiStatus(slotResult?.newStatus ?? targetStatus);
+
+    mapState = updateSlotStatus(mapState, safeSlotId, nextUiStatus);
+    MapView.updateSlot(safeSlotId, nextUiStatus);
+    updateSummary();
+
+    if (slotResult?.changed === false) {
+      MapView.setFeedback(containerRef, slotResult?.message || 'Trang thai khong thay doi.', 'warning');
+      return;
+    }
+
+    MapView.setFeedback(containerRef, slotResult?.message || `Da cap nhat trang thai cho P${safeSlotId}.`, 'success');
+  } catch (error) {
+    console.error('Admin status update failed:', error);
+    MapView.setFeedback(containerRef, error?.message || 'Khong the cap nhat trang thai cho do.', 'error');
+  } finally {
+    MapView.setSlotControlLoading(containerRef, safeSlotId, false);
+  }
+};
+
 const handleLogout = () => {
   AuthSessionService.signOut();
   if (routerRef) {
@@ -198,11 +287,22 @@ export const MapController = {
 
     mapState = cloneInitialState();
 
-    MapView.renderLayout(containerRef, mapState, session);
+    const userRole = normalizeRole(session?.user?.role) || 'USER';
+    const viewSession = {
+      ...session,
+      user: {
+        ...(session?.user ?? {}),
+        role: userRole
+      },
+      canManageSlots: isPrivilegedSession(session)
+    };
+
+    MapView.renderLayout(containerRef, mapState, viewSession);
     MapView.setSummary(containerRef, mapState.slots);
     MapView.setCurrentTime(containerRef, new Date());
     MapView.bindRefresh(containerRef, handleManualRefresh);
     MapView.bindLogout(containerRef, handleLogout);
+    MapView.bindAdminSlotActions(containerRef, handleAdminSlotStatusSubmit);
     startClockTicker();
 
     socketRef = SocketService.connect(session.accessToken);

@@ -34,9 +34,69 @@ const toDateTimeLabel = (date) => {
     }).format(safeDate);
 };
 
+const UI_TO_SERVER_STATUS = {
+    0: 'AVAILABLE',
+    1: 'OCCUPIED',
+    2: 'MAINTAIN'
+};
+
+const SLOT_STATUS_OPTIONS = [
+    { value: 'AVAILABLE', label: 'Con trong' },
+    { value: 'OCCUPIED', label: 'Da co xe' },
+    { value: 'MAINTAIN', label: 'Bao tri' }
+];
+
+const toServerStatus = (status) => UI_TO_SERVER_STATUS[Number(status)] ?? 'AVAILABLE';
+
+const buildAdminSlotControls = (slots) => {
+    const safeSlots = Array.isArray(slots) ? slots : [];
+
+    return safeSlots.map((slot) => {
+        const currentStatus = toServerStatus(slot.status);
+        const optionsMarkup = SLOT_STATUS_OPTIONS
+            .map((option) => (
+                `<option value="${option.value}" ${option.value === currentStatus ? 'selected' : ''}>${option.label}</option>`
+            ))
+            .join('');
+
+        return `
+            <article class="slot-admin-row" data-slot-id="${slot.id}">
+                <p class="slot-admin-id">P${slot.id}</p>
+                <select class="slot-admin-select" data-slot-id="${slot.id}" aria-label="Trang thai cho P${slot.id}">
+                    ${optionsMarkup}
+                </select>
+                <button type="button" class="slot-admin-btn" data-slot-id="${slot.id}">Cap nhat</button>
+            </article>
+        `;
+    }).join('');
+};
+
+const syncSlotSelect = (slotId, status) => {
+    const selectElement = document.querySelector(`.slot-admin-select[data-slot-id="${slotId}"]`);
+    if (!selectElement) return;
+
+    selectElement.value = toServerStatus(status);
+};
+
 export const MapView = {
     renderLayout: (container, state, session) => {
         const userEmail = session?.email ? session.email : 'guest@local';
+        const userRole = typeof session?.user?.role === 'string' ? session.user.role.toUpperCase() : 'USER';
+        const canManageSlots = session?.canManageSlots === true;
+
+        const adminPanelMarkup = canManageSlots
+            ? `
+                <section class="slot-admin-panel" id="slot-admin-panel">
+                    <div class="slot-admin-head">
+                        <p class="slot-admin-title">Dieu khien trang thai bai xe</p>
+                        <p class="slot-admin-subtitle">Cap nhat truc tiep tung cho do theo quyen ${userRole}.</p>
+                    </div>
+                    <div class="slot-admin-grid" id="slot-admin-grid">
+                        ${buildAdminSlotControls(state?.slots)}
+                    </div>
+                </section>
+            `
+            : '';
 
         container.innerHTML = `
             <div class="main-frame">
@@ -84,6 +144,8 @@ export const MapView = {
 
                     <p class="map-feedback map-feedback--hidden" id="map-feedback" aria-live="polite"></p>
 
+                    ${adminPanelMarkup}
+
                     <section class="map-board-shell">
                         <p class="lane-label lane-label--entry">Entry</p>
                         <div class="parking-lot">
@@ -94,6 +156,7 @@ export const MapView = {
 
                     <footer class="map-footer">
                         <p class="footer-item">Nguoi dung: <strong id="map-user-email">${userEmail}</strong></p>
+                        <p class="footer-item">Vai tro: <strong id="map-user-role">${userRole}</strong></p>
                         <p class="footer-item">Cap nhat luc: <strong id="map-current-time">--:--:--</strong></p>
                     </footer>
                 </div>
@@ -136,6 +199,25 @@ export const MapView = {
         });
     },
 
+    bindAdminSlotActions: (container, handler) => {
+        const adminPanel = container.querySelector('#slot-admin-panel');
+        if (!adminPanel) return;
+
+        adminPanel.addEventListener('click', (event) => {
+            const updateButton = event.target.closest('.slot-admin-btn');
+            if (!updateButton) return;
+
+            const slotId = Number(updateButton.dataset.slotId);
+            if (!Number.isFinite(slotId)) return;
+
+            const selectElement = adminPanel.querySelector(`.slot-admin-select[data-slot-id="${slotId}"]`);
+            const nextStatus = String(selectElement?.value ?? '').trim().toUpperCase();
+            if (!nextStatus) return;
+
+            handler(slotId, nextStatus);
+        });
+    },
+
     updateSlot: (slotId, status) => {
         const slotElement = document.getElementById(`slot-${slotId}`);
         if (!slotElement) return;
@@ -159,6 +241,7 @@ export const MapView = {
 
         slotElement.dataset.status = Number(status);
         MapView.drawInternalContent(slotElement, status);
+        syncSlotSelect(slotId, status);
     },
 
     applyBatchSlots: (slots) => {
@@ -173,6 +256,7 @@ export const MapView = {
 
             slotElement.dataset.status = safeStatus;
             MapView.drawInternalContent(slotElement, safeStatus);
+            syncSlotSelect(slot.id, safeStatus);
         });
     },
 
@@ -245,5 +329,22 @@ export const MapView = {
         if (!timeElement) return;
 
         timeElement.textContent = toDateTimeLabel(date);
+    },
+
+    setSlotControlLoading: (container, slotId, isLoading) => {
+        const rowElement = container.querySelector(`.slot-admin-row[data-slot-id="${slotId}"]`);
+        if (!rowElement) return;
+
+        const selectElement = rowElement.querySelector('.slot-admin-select');
+        const buttonElement = rowElement.querySelector('.slot-admin-btn');
+
+        if (selectElement) {
+            selectElement.disabled = isLoading;
+        }
+
+        if (buttonElement) {
+            buttonElement.disabled = isLoading;
+            buttonElement.textContent = isLoading ? 'Dang cap nhat...' : 'Cap nhat';
+        }
     }
 };

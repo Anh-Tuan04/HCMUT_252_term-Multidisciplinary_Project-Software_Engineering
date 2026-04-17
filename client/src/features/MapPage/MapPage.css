@@ -236,6 +236,98 @@
     color: #19567d;
 }
 
+.slot-admin-panel {
+    border-radius: 18px;
+    border: 1px solid #d9e8f3;
+    background: linear-gradient(160deg, #ffffff 0%, #f3f9ff 100%);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.slot-admin-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.slot-admin-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #133754;
+}
+
+.slot-admin-subtitle {
+    font-size: 13px;
+    color: #49647f;
+    font-weight: 600;
+}
+
+.slot-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+}
+
+.slot-admin-row {
+    border-radius: 14px;
+    border: 1px solid #dce9f4;
+    background: #ffffff;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.slot-admin-id {
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #274a67;
+}
+
+.slot-admin-select {
+    min-height: 36px;
+    border-radius: 10px;
+    border: 1px solid #d4e2ed;
+    background: #f7fbff;
+    font-size: 13px;
+    font-weight: 700;
+    color: #24445f;
+    padding: 0 10px;
+}
+
+.slot-admin-select:focus {
+    outline: 2px solid rgba(30, 167, 209, 0.28);
+    border-color: #69c2dd;
+}
+
+.slot-admin-btn {
+    min-height: 36px;
+    border: none;
+    border-radius: 10px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #ffffff;
+    background: linear-gradient(135deg, #1da7d1, #127f9f);
+    cursor: pointer;
+    transition: filter 180ms ease;
+}
+
+.slot-admin-btn:hover {
+    filter: brightness(0.97);
+}
+
+.slot-admin-btn:disabled,
+.slot-admin-select:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 .map-board-shell {
     border-radius: 20px;
     border: 1px solid #dce8f2;
@@ -486,6 +578,18 @@
 
     .map-toolbar-meta {
         width: 100%;
+    }
+
+    .slot-admin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .slot-admin-row {
+        grid-template-columns: auto 1fr;
+    }
+
+    .slot-admin-btn {
+        grid-column: 1 / -1;
     }
 
     .map-action-btn {
