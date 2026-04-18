@@ -17,12 +17,14 @@ component "Server" as Server {
     }
     component "Service" as Service {
         ' component "Embedded Handler Service" as EmbeddedHandlerService
+        component "Authentication Service" as AuthenticationService
         component "Parking Suggestion Service" as ParkingSuggestionService
         component "Paking Cards' Status Service" as ParkingCardsStatusService
         component "Parking Slot Service" as ParkingSlotService
         component "Statistics Service" as StatisticsService
     }
     component "Repository" as Repository {
+        component "Authentication Repository" as AuthenticationRepository
         component "Parking Daily Traffic Repository" as ParkingLotDailyTrafficRepository
         component "Parking Lot Status Repository" as ParkingLotStatusRepository
         component "Parking Cards Repository" as ParkingCardsRepository
