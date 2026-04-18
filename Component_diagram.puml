@@ -4,8 +4,8 @@ component "Embedded" as Embedded {
     component "Camera" as Camera
     component "Parking Gate Device" as ParkingGateDevice {
         component "Ultrasonic sensor" as UltrasonicSensor
-        component "Other embedded devices" as OtherEmbeddedDevices
     }
+    component "Parking Slot Sensor" as ParkingSlotSensor
     component "Parking Card Reader" as ParkingCardReader
 }
 
@@ -36,8 +36,7 @@ component "Server" as Server {
 
     ControllerServer <--> Service
     Repository <--> Database
-    Embedded --> EmbeddedAdapter: "send data"
-    EmbeddedAdapter --> Embedded: "control embedded"
+    Embedded --> EmbeddedAdapter: "MQTT/HTTP(s)"
 }
 
 component "Client" as Client {
@@ -46,26 +45,26 @@ component "Client" as Client {
         component "Map View" as MapView {
             component "Parking Slots' Status" as ParkingSlotsStatusView
             component "Parking Suggestions" as ParkingSuggestionsView
-            component "Warnings" as WarningsView
         }
         component "Traffic Dashboard" as TrafficDashboard
+        component "Authentication View" as AuthenticationView
     }
     component "Model" as ModelClient {
         component "Parking Slots Status Model" as ParkingSlotsStatusModel
         component "Parking Suggestions Model" as ParkingSuggestionsModel
-        component "Warnings Model" as WarningsModel
         component "Traffic Statistics Model" as TrafficStatisticsModel
-        ParkingSlotsStatusModel --> ParkingSlotsStatusView
-        ParkingSuggestionsModel --> ParkingSuggestionsView
-        WarningsModel --> WarningsView
-        TrafficStatisticsModel --> TrafficDashboard
-    }   
-    ControllerClient --> WebAdapter: "send request"
-    WebAdapter --> ControllerClient: "response"
-    View --> ControllerClient: "send input"
-    ControllerClient --> View: "update view"
-    ControllerClient --> ModelClient: "manipulate data"
-}
+        component "Authentication Model" as AuthenticationModel
+    }
+    ParkingSlotsStatusModel --> ParkingSlotsStatusView
+    ParkingSuggestionsModel --> ParkingSuggestionsView
+    TrafficStatisticsModel --> TrafficDashboard
+    AuthenticationModel --> AuthenticationView
+}   
+ControllerClient <--> WebAdapter: "WebSocket/WebTransport"
+View --> ControllerClient: "send input"
+ControllerClient --> View: "update view"
+ControllerClient --> ModelClient: "manipulate data"
+
 
 @enduml
 
