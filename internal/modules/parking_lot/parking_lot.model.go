@@ -6,12 +6,12 @@ import (
 )
 
 type ParkingLot struct {
-	ID        uint                       `GORM:"primaryKey;autoIncrement"`
-	Name      string                     `GORM:"type:varchar(100);not null"`
-	Location  *string                    `GORM:"type:varchar(255)"`
-	CreatedAt time.Time                  `GORM:"autoCreateTime"`
-	UpdatedAt time.Time                  `GORM:"autoUpdateTime"`
-	Slots     []parking_slot.ParkingSlot `GORM:"foreignKey:LotID;references:ID"`
+	ID        uint                       `gorm:"primaryKey;autoIncrement"`
+	Name      string                     `gorm:"type:varchar(100);not null"`
+	Location  *string                    `gorm:"type:varchar(255)"`
+	CreatedAt time.Time                  `gorm:"autoCreateTime"`
+	UpdatedAt time.Time                  `gorm:"autoUpdateTime"`
+	Slots     []parking_slot.ParkingSlot `gorm:"foreignKey:LotID;references:ID"`
 }
 
 func (ParkingLot) TableName() string {

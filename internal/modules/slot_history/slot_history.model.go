@@ -12,15 +12,15 @@ const (
 )
 
 type SlotHistory struct {
-	ID        uint    `GORM:"primaryKey;autoIncrement"`
-	SlotID    uint    `GORM:"not null;index;index:idx_slot_created_at"`
-	OldDevice *string `GORM:"type:varchar(50)"`
-	NewDevice *string `GORM:"type:varchar(50)"`
+	ID        uint    `gorm:"primaryKey;autoIncrement"`
+	SlotID    uint    `gorm:"not null;index;index:idx_slot_created_at"`
+	OldDevice *string `gorm:"type:varchar(50)"`
+	NewDevice *string `gorm:"type:varchar(50)"`
 	OldPort   *int
 	NewPort   *int
-	Action    SlotHistoryAction `GORM:"type:enum('DEVICE_CHANGE','STATUS_CHANGE','SYSTEM_FIX','MAINTAIN_MODE');default:'DEVICE_CHANGE';not null"`
-	UserID    *uint             `GORM:"index"`
-	CreatedAt time.Time         `GORM:"autoCreateTime;index;index:idx_slot_created_at"`
+	Action    SlotHistoryAction `gorm:"type:enum('DEVICE_CHANGE','STATUS_CHANGE','SYSTEM_FIX','MAINTAIN_MODE');default:'DEVICE_CHANGE';not null"`
+	UserID    *uint             `gorm:"index"`
+	CreatedAt time.Time         `gorm:"autoCreateTime;index;index:idx_slot_created_at"`
 }
 
 func (SlotHistory) TableName() string {

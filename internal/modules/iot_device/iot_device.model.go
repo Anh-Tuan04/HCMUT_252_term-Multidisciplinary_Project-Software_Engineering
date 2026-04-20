@@ -11,13 +11,13 @@ const (
 )
 
 type IoTDevice struct {
-	MacAddress string       `GORM:"primaryKey;type:varchar(50)"`
-	DeviceName *string      `GORM:"type:varchar(50)"`
-	Status     DeviceStatus `GORM:"type:enum('ACTIVE','INACTIVE','ERROR');default:'ACTIVE';not null"`
-	LotID      *uint        `GORM:"index"`
+	MacAddress string       `gorm:"primaryKey;type:varchar(50)"`
+	DeviceName *string      `gorm:"type:varchar(50)"`
+	Status     DeviceStatus `gorm:"type:enum('ACTIVE','INACTIVE','ERROR');default:'ACTIVE';not null"`
+	LotID      *uint        `gorm:"index"`
 	LastSeen   *time.Time
-	CreatedAt  time.Time `GORM:"autoCreateTime"`
-	UpdatedAt  time.Time `GORM:"autoUpdateTime"`
+	CreatedAt  time.Time `gorm:"autoCreateTime"`
+	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
 }
 
 func (IoTDevice) TableName() string {

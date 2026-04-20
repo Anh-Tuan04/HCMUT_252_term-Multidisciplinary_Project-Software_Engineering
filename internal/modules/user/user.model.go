@@ -11,15 +11,15 @@ const (
 )
 
 type User struct {
-	ID         uint      `GORM:"primaryKey;autoIncrement"`
-	FirstName  string    `GORM:"type:varchar(100);not null"`
-	LastName   string    `GORM:"type:varchar(100);not null"`
-	Email      string    `GORM:"type:varchar(255);not null;uniqueIndex"`
-	Password   string    `GORM:"type:varchar(255);not null"`
-	Role       Role      `GORM:"type:enum('USER','MANAGER','ADMIN');default:'USER';not null"`
-	IsVerified bool      `GORM:"default:false;not null"`
-	CreatedAt  time.Time `GORM:"autoCreateTime"`
-	UpdatedAt  time.Time `GORM:"autoUpdateTime"`
+	ID         uint      `gorm:"primaryKey;autoIncrement"`
+	FirstName  string    `gorm:"type:varchar(100);not null"`
+	LastName   string    `gorm:"type:varchar(100);not null"`
+	Email      string    `gorm:"type:varchar(255);not null;uniqueIndex"`
+	Password   string    `gorm:"type:varchar(255);not null"`
+	Role       Role      `gorm:"type:enum('USER','MANAGER','ADMIN');default:'USER';not null"`
+	IsVerified bool      `gorm:"default:false;not null"`
+	CreatedAt  time.Time `gorm:"autoCreateTime"`
+	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
 }
 
 func (User) TableName() string {

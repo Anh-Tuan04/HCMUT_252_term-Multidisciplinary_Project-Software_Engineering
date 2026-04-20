@@ -10,10 +10,10 @@ const (
 )
 
 type VehicleLog struct {
-	ID        uint      `GORM:"primaryKey;autoIncrement"`
-	SlotID    uint      `GORM:"not null;index;index:idx_slot_created_at"`
-	Type      LogType   `GORM:"type:enum('IN','OUT');not null"`
-	CreatedAt time.Time `GORM:"autoCreateTime;index;index:idx_slot_created_at"`
+	ID        uint      `gorm:"primaryKey;autoIncrement"`
+	SlotID    uint      `gorm:"not null;index;index:idx_slot_created_at"`
+	Type      LogType   `gorm:"type:enum('IN','OUT');not null"`
+	CreatedAt time.Time `gorm:"autoCreateTime;index;index:idx_slot_created_at"`
 }
 
 func (VehicleLog) TableName() string {
