@@ -5,6 +5,7 @@ import (
 	"backend/internal/modules/iot_device"
 	"backend/internal/modules/parking_lot"
 	"backend/internal/modules/slot_history"
+	"backend/internal/modules/user"
 	"backend/internal/modules/vehicle_log"
 	"backend/pkg/database"
 	"backend/pkg/middleware"
@@ -20,6 +21,7 @@ func main() {
 	vehicleLogModule := vehicle_log.NewModule(db)
 	slotHistoryModule := slot_history.NewModule(db)
 	parkingLotModule := parking_lot.NewModule(db)
+	userModule := user.NewModule(db)
 	r := gin.New()
 
 	r.Use(gin.Logger())
@@ -32,6 +34,7 @@ func main() {
 	vehicle_log.RegisterRoutes(api, vehicleLogModule.Handler)
 	slot_history.RegisterRoutes(api, slotHistoryModule.Handler)
 	parking_lot.RegisterRoutes(api, parkingLotModule.Handler)
+	user.RegisterRoutes(api, userModule.Handler)
 
 	_ = r.Run(":" + cfg.AppPort)
 }
