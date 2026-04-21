@@ -17,6 +17,18 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
+// Create godoc
+// @Summary Tạo bãi đỗ xe
+// @Description Tạo mới một bãi đỗ xe trong hệ thống
+// @Tags parking_lot
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateParkingLotRequest true "Thông tin bãi đỗ xe"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /parking-lots [post]
 func (h *Handler) Create(c *gin.Context) {
 	var req CreateParkingLotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -33,6 +45,15 @@ func (h *Handler) Create(c *gin.Context) {
 	response.Success(c, 201, "Tạo bãi đỗ thành công", lot)
 }
 
+// FindAll godoc
+// @Summary Lấy danh sách bãi đỗ xe
+// @Description Trả về toàn bộ danh sách bãi đỗ xe
+// @Tags parking_lot
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /parking-lots [get]
 func (h *Handler) FindAll(c *gin.Context) {
 	lots, err := h.service.FindAll()
 	if err != nil {
@@ -43,6 +64,17 @@ func (h *Handler) FindAll(c *gin.Context) {
 	response.Success(c, 200, "Lấy danh sách bãi đỗ thành công", lots)
 }
 
+// FindByID godoc
+// @Summary Lấy chi tiết bãi đỗ xe
+// @Description Lấy thông tin chi tiết của một bãi đỗ xe theo ID
+// @Tags parking_lot
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID bãi đỗ xe"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /parking-lots/{id} [get]
 func (h *Handler) FindByID(c *gin.Context) {
 	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -59,6 +91,19 @@ func (h *Handler) FindByID(c *gin.Context) {
 	response.Success(c, 200, "Lấy thông tin bãi đỗ thành công", lot)
 }
 
+// Update godoc
+// @Summary Cập nhật bãi đỗ xe
+// @Description Cập nhật thông tin bãi đỗ xe theo ID
+// @Tags parking_lot
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID bãi đỗ xe"
+// @Param request body UpdateParkingLotRequest true "Thông tin cập nhật bãi đỗ xe"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /parking-lots/{id} [put]
 func (h *Handler) Update(c *gin.Context) {
 	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

@@ -15,6 +15,18 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
+// CreateDevice godoc
+// @Summary Tạo thiết bị IoT
+// @Description Tạo mới một thiết bị IoT trong hệ thống
+// @Tags iot_device
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateIoTDeviceRequest true "Thông tin thiết bị IoT"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /iot-devices [post]
 func (h *Handler) CreateDevice(c *gin.Context) {
 	var req CreateIoTDeviceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

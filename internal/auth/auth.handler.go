@@ -26,6 +26,16 @@ func NewHandler(service *Service, mailService verifiedPageRenderer) *Handler {
 	}
 }
 
+// Register godoc
+// @Summary Đăng ký tài khoản
+// @Description Tạo tài khoản mới và gửi email xác thực
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Thông tin đăng ký"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /auth/register [post]
 func (h *Handler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -41,6 +51,16 @@ func (h *Handler) Register(c *gin.Context) {
 	response.Success(c, 201, "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.", nil)
 }
 
+// VerifyEmail godoc
+// @Summary Xác thực email
+// @Description Xác thực tài khoản bằng email và mã code từ link gửi qua email
+// @Tags auth
+// @Produce html
+// @Param email query string true "Email"
+// @Param code query string true "Mã xác thực"
+// @Success 200 {string} string "HTML verified page"
+// @Failure 400 {object} map[string]interface{}
+// @Router /auth/verify-email [get]
 func (h *Handler) VerifyEmail(c *gin.Context) {
 	email := c.Query("email")
 	code := c.Query("code")
@@ -67,6 +87,16 @@ func (h *Handler) VerifyEmail(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
 }
 
+// ResendVerification godoc
+// @Summary Gửi lại email xác thực
+// @Description Gửi lại email xác thực tài khoản
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body EmailRequest true "Email người dùng"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /auth/resend-verification [post]
 func (h *Handler) ResendVerification(c *gin.Context) {
 	var req EmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -82,6 +112,16 @@ func (h *Handler) ResendVerification(c *gin.Context) {
 	response.Success(c, 200, "Resend email successful", nil)
 }
 
+// Login godoc
+// @Summary Đăng nhập
+// @Description Đăng nhập bằng email và mật khẩu
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Thông tin đăng nhập"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /auth/login [post]
 func (h *Handler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -111,6 +151,15 @@ func (h *Handler) Login(c *gin.Context) {
 	response.Success(c, 200, "Đăng nhập thành công", data)
 }
 
+// Logout godoc
+// @Summary Đăng xuất
+// @Description Đăng xuất tài khoản hiện tại và xóa refresh token cookie
+// @Tags auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /auth/logout [post]
 func (h *Handler) Logout(c *gin.Context) {
 	userIDValue, exists := c.Get("user_id")
 	if !exists {
@@ -146,6 +195,14 @@ func (h *Handler) Logout(c *gin.Context) {
 	response.Success(c, 200, "Đăng xuất thành công", nil)
 }
 
+// RefreshToken godoc
+// @Summary Làm mới access token
+// @Description Cấp lại access token từ refresh token trong cookie
+// @Tags auth
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /auth/refresh-token [post]
 func (h *Handler) RefreshToken(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil || refreshToken == "" {
@@ -162,6 +219,16 @@ func (h *Handler) RefreshToken(c *gin.Context) {
 	response.Success(c, 200, "Làm mới token thành công", data)
 }
 
+// SendResetPassword godoc
+// @Summary Gửi email đặt lại mật khẩu
+// @Description Gửi email chứa hướng dẫn hoặc mã để đặt lại mật khẩu
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body EmailRequest true "Email người dùng"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /auth/send-reset-password [post]
 func (h *Handler) SendResetPassword(c *gin.Context) {
 	var req EmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -177,6 +244,16 @@ func (h *Handler) SendResetPassword(c *gin.Context) {
 	response.Success(c, 200, "Password reset email sent successfully", nil)
 }
 
+// ResetPassword godoc
+// @Summary Đặt lại mật khẩu
+// @Description Đặt lại mật khẩu bằng mã xác thực hoặc token reset
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body ResetPasswordRequest true "Thông tin đặt lại mật khẩu"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /auth/reset-password [post]
 func (h *Handler) ResetPassword(c *gin.Context) {
 	var req ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

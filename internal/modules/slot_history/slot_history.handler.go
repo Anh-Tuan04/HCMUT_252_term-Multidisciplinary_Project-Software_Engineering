@@ -15,6 +15,17 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
+// GetBySlotID godoc
+// @Summary Lấy lịch sử theo vị trí đỗ
+// @Description Trả về lịch sử hoạt động của một vị trí đỗ xe theo slot ID
+// @Tags slot_history
+// @Produce json
+// @Security BearerAuth
+// @Param slotId path int true "ID vị trí đỗ xe"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /parking-slots/{slotId}/history [get]
 func (h *Handler) GetBySlotID(c *gin.Context) {
 	var params GetSlotHistoryBySlotIDParams
 	if err := c.ShouldBindUri(&params); err != nil {

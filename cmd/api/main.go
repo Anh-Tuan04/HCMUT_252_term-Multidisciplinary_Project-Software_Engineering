@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"backend/configs"
+	_ "backend/docs"
 	"backend/internal/auth"
 	authmail "backend/internal/auth/mail"
 	"backend/internal/auth/token"
@@ -20,8 +21,18 @@ import (
 	"backend/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title Smart Parking Backend API
+// @version 1.0
+// @description Backend API cho hệ thống smart parking
+// @host localhost:8080
+// @BasePath /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	cfg := configs.LoadConfig()
 
@@ -80,6 +91,8 @@ func main() {
 			"message": "Service is running perfectly",
 		})
 	})
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := r.Group("/api/v1")
 
