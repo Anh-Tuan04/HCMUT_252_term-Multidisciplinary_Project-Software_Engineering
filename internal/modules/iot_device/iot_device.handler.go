@@ -28,7 +28,5 @@ func (h *Handler) CreateDevice(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, 201, "Tạo thiết bị IoT thành công", gin.H{
-		"device": device,
-	})
+	response.Success(c, 201, "Tạo thiết bị IoT thành công", device)
 }

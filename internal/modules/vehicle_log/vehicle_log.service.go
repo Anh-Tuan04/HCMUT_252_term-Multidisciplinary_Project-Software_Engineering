@@ -1,27 +1,28 @@
 package vehicle_log
 
-import "gorm.io/gorm"
+import appErrors "backend/internal/common/errors"
 
-type Repository struct {
-	db *gorm.DB
+type Service struct {
+	repo *Repository
 }
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{db: db}
+func NewService(repo *Repository) *Service {
+	return &Service{repo: repo}
 }
 
-func (r *Repository) Create(log *VehicleLog) error {
-	return r.db.Create(log).Error
-}
-
-func (r *Repository) FindBySlotID(slotID uint) ([]VehicleLog, error) {
-	var logs []VehicleLog
-	err := r.db.
-		Where("slot_id = ?", slotID).
-		Order("created_at DESC").
-		Find(&logs).Error
-	if err != nil {
-		return nil, err
+func (s *Service) Create(log *VehicleLog) error {
+	if err := s.repo.Create(log); err != nil {
+		return appErrors.NewInternal("Không thể tạo nhật ký xe")
 	}
+
+	return nil
+}
+
+func (s *Service) FindBySlotID(slotID uint) ([]VehicleLog, error) {
+	logs, err := s.repo.FindBySlotID(slotID)
+	if err != nil {
+		return nil, appErrors.NewInternal("Không thể lấy lịch sử bãi đỗ")
+	}
+
 	return logs, nil
 }
