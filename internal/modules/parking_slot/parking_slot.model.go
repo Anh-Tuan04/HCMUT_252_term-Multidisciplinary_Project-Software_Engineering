@@ -8,7 +8,6 @@ const (
 	SlotStatusAvailable SlotStatus = "AVAILABLE"
 	SlotStatusOccupied  SlotStatus = "OCCUPIED"
 	SlotStatusMaintain  SlotStatus = "MAINTAIN"
-	SlotStatusOffline   SlotStatus = "OFFLINE"
 )
 
 type ParkingSlot struct {
@@ -17,7 +16,7 @@ type ParkingSlot struct {
 	LotID      uint       `gorm:"not null;index;uniqueIndex:uk_lot_name;index:idx_lot_status"`
 	DeviceMac  string     `gorm:"type:varchar(50);not null;index;uniqueIndex:uk_device_port"`
 	PortNumber int        `gorm:"not null;uniqueIndex:uk_device_port"`
-	Status     SlotStatus `gorm:"type:enum('AVAILABLE','OCCUPIED','MAINTAIN','OFFLINE');default:'AVAILABLE';not null;index:idx_lot_status"`
+	Status     SlotStatus `gorm:"type:enum('AVAILABLE','OCCUPIED','MAINTAIN');default:'AVAILABLE';not null;index:idx_lot_status"`
 	CreatedAt  time.Time  `gorm:"autoCreateTime"`
 	UpdatedAt  time.Time  `gorm:"autoUpdateTime"`
 }

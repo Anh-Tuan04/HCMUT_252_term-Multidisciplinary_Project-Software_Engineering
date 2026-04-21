@@ -2,6 +2,14 @@ package vehicle_log
 
 import appErrors "backend/internal/common/errors"
 
+type SlotStatus string
+
+const (
+	SlotStatusAvailable SlotStatus = "AVAILABLE"
+	SlotStatusOccupied  SlotStatus = "OCCUPIED"
+	SlotStatusMaintain  SlotStatus = "MAINTAIN"
+)
+
 type Service struct {
 	repo *Repository
 }
@@ -25,4 +33,22 @@ func (s *Service) FindBySlotID(slotID uint) ([]VehicleLog, error) {
 	}
 
 	return logs, nil
+}
+
+func (s *Service) RecordByStatusTransition(slotID uint, oldStatus, newStatus SlotStatus) error {
+	var logType LogType
+
+	switch {
+	case oldStatus == SlotStatusAvailable && newStatus == SlotStatusOccupied:
+		logType = LogTypeIn
+	case oldStatus == SlotStatusOccupied && newStatus == SlotStatusAvailable:
+		logType = LogTypeOut
+	default:
+		return nil
+	}
+
+	return s.Create(&VehicleLog{
+		SlotID: slotID,
+		Type:   logType,
+	})
 }
