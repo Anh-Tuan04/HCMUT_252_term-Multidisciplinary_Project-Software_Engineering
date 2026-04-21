@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	AppEnv           string
 	AppPort          string
 	DBHost           string
 	DBPort           string
@@ -18,12 +19,25 @@ type Config struct {
 	RedisPassword    string
 	JWTAccessSecret  string
 	JWTRefreshSecret string
+	MailHost         string
+	MailPort         string
+	MailUser         string
+	MailPass         string
+	VerifyURL        string
 }
 
 func LoadConfig() *Config {
-	_ = godotenv.Load()
+	appEnv := os.Getenv("APP_ENV")
+	if appEnv == "" {
+		appEnv = "local"
+	}
+
+	if appEnv == "local" {
+		_ = godotenv.Load(".env.local")
+	}
 
 	cfg := &Config{
+		AppEnv:           appEnv,
 		AppPort:          os.Getenv("APP_PORT"),
 		DBHost:           os.Getenv("DB_HOST"),
 		DBPort:           os.Getenv("DB_PORT"),
@@ -34,10 +48,19 @@ func LoadConfig() *Config {
 		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
 		JWTAccessSecret:  os.Getenv("JWT_ACCESS_SECRET"),
 		JWTRefreshSecret: os.Getenv("JWT_REFRESH_SECRET"),
+		MailHost:         os.Getenv("MAIL_HOST"),
+		MailPort:         os.Getenv("MAIL_PORT"),
+		MailUser:         os.Getenv("MAIL_USER"),
+		MailPass:         os.Getenv("MAIL_PASS"),
+		VerifyURL:        os.Getenv("VERIFY_URL"),
 	}
 
 	if cfg.AppPort == "" {
 		log.Fatal("APP_PORT is required")
+	}
+
+	if cfg.VerifyURL == "" {
+		log.Fatal("VERIFY_URL is required")
 	}
 
 	return cfg

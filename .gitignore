@@ -18,9 +18,13 @@
 # Environment Variables (QUAN TRỌNG)
 # =========================
 # KHÔNG BAO GIỜ push các file chứa config database, API keys, JWT secrets lên Git
+.env.local
+.env.production
+.env.development
 .env
-.env.*
 !.env.example # Cho phép push file .env.example (chỉ chứa tên biến, không chứa value thật)
+
+docker-compose.yaml
 
 # =========================
 # Go Workspace & Vendor
