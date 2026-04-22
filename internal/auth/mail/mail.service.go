@@ -62,6 +62,7 @@ func (s *Service) SendVerificationEmail(to, firstName, verifyURL string) error {
 	return s.sendHTML(to, "Xac thuc tai khoan Smart Parking", body)
 }
 
+// SendPasswordResetEmail gửi email đặt lại mật khẩu với link chứa code reset
 func (s *Service) SendPasswordResetEmail(to, firstName, code string) error {
 	body, err := s.renderTemplate("reset-password.html", ResetPasswordEmailData{
 		FirstName: firstName,
@@ -74,10 +75,12 @@ func (s *Service) SendPasswordResetEmail(to, firstName, code string) error {
 	return s.sendHTML(to, "Dat lai mat khau Smart Parking", body)
 }
 
+// RenderVerifiedPage trả về HTML của trang đã xác thực, có thể dùng để hiển thị sau khi user click link xác thực email
 func (s *Service) RenderVerifiedPage(year int) (string, error) {
 	return s.renderTemplate("verified.html", VerifiedPageData{Year: year})
 }
 
+// renderTemplate đọc file template, thực thi với data và trả về kết quả HTML
 func (s *Service) renderTemplate(firstName string, data any) (string, error) {
 	tplPath := filepath.Join(s.templateDir, firstName)
 

@@ -38,35 +38,43 @@ func NewService(
 	}
 }
 
+// Hash chuỗi bằng SHA-256 và trả về hex string
 func sha256Hex(raw string) string {
 	sum := sha256.Sum256([]byte(raw))
 	return hex.EncodeToString(sum[:])
 }
 
+// Chuẩn hóa email: xóa khoảng trắng và chuyển về chữ thường
 func normalizeEmail(email string) string {
 	return strings.TrimSpace(strings.ToLower(email))
 }
 
+// Tạo key Redis cho các mục đích khác nhau, giúp tránh trùng lặp và dễ quản lý
 func verifyEmailKey(r *database.RedisClient, userID uint) string {
 	return r.Key("auth", "verify_email", "user", userID)
 }
 
+// Định nghĩa các key khác như resetPasswordKey, loginFailEmailKey, loginFailIPKey, revokedAccessKey
 func resetPasswordKey(r *database.RedisClient, userID uint) string {
 	return r.Key("auth", "reset_password", "user", userID)
 }
 
+// Đếm số lan đăng nhập thất bại theo email và IP để áp dụng các biện pháp bảo mật như khóa tạm thời
 func loginFailEmailKey(r *database.RedisClient, email string) string {
 	return r.Key("auth", "login_fail", "email", normalizeEmail(email))
 }
 
+// Đếm số lan đăng nhập thất bại theo IP để áp dụng các biện pháp bảo mật như khóa tạm thời
 func loginFailIPKey(r *database.RedisClient, ip string) string {
 	return r.Key("auth", "login_fail", "ip", ip)
 }
 
+// Lưu JTI của access token đã bị thu hồi để kiểm tra trong middleware xác thực token
 func revokedAccessKey(r *database.RedisClient, jti string) string {
 	return r.Key("auth", "revoked_access", "jti", jti)
 }
 
+// Register
 func (s *Service) Register(req RegisterRequest) error {
 	req.Email = normalizeEmail(req.Email)
 	req.FirstName = strings.TrimSpace(req.FirstName)
@@ -119,6 +127,7 @@ func (s *Service) Register(req RegisterRequest) error {
 	return nil
 }
 
+// VerifyEmail after Register
 func (s *Service) VerifyEmail(req VerifyEmailRequest) error {
 	req.Email = normalizeEmail(req.Email)
 
@@ -151,6 +160,7 @@ func (s *Service) VerifyEmail(req VerifyEmailRequest) error {
 	return nil
 }
 
+// Gửi lại email xác thực nếu người dùng chưa nhận được hoặc mã cũ đã hết hạn
 func (s *Service) ResendVerificationEmail(req EmailRequest) error {
 	req.Email = normalizeEmail(req.Email)
 
@@ -193,6 +203,7 @@ func (s *Service) ResendVerificationEmail(req EmailRequest) error {
 	return nil
 }
 
+// Tăng số lần đăng nhập thất bại cho email và IP, có thể dùng để khóa tạm thời sau nhiều lần thất bại
 func (s *Service) increaseLoginFail(email, ip string) {
 	if email != "" {
 		key := loginFailEmailKey(s.redis, email)
@@ -210,6 +221,7 @@ func (s *Service) increaseLoginFail(email, ip string) {
 	}
 }
 
+// Xóa số lần đăng nhập thất bại sau khi đăng nhập thành công
 func (s *Service) clearLoginFail(email, ip string) {
 	if email != "" {
 		_ = s.redis.Delete(loginFailEmailKey(s.redis, email))
@@ -219,6 +231,8 @@ func (s *Service) clearLoginFail(email, ip string) {
 	}
 }
 
+// ValidateUser kiểm tra email và password, trả về user nếu hợp lệ
+// Tăng số lần đăng nhập thất bại nếu không hợp lệ
 func (s *Service) ValidateUser(email, password, ip string) (*user.User, error) {
 	email = normalizeEmail(email)
 
@@ -240,6 +254,7 @@ func (s *Service) ValidateUser(email, password, ip string) (*user.User, error) {
 	return u, nil
 }
 
+// Login tạo access token và refresh token cho user đã xác thực
 func (s *Service) Login(u *user.User, device, ip string) (*LoginResponse, string, error) {
 	accessToken, err := s.tokenService.CreateAccessToken(u.ID, u.Email, string(u.Role))
 	if err != nil {
@@ -279,6 +294,7 @@ func (s *Service) Login(u *user.User, device, ip string) (*LoginResponse, string
 	}, refreshToken, nil
 }
 
+// Logout xóa refresh token và lưu JTI của access token đã bị thu hồi để middleware có thể kiểm tra
 func (s *Service) Logout(userID uint, refreshToken, accessJTI string, accessTTL time.Duration) error {
 	if refreshToken != "" {
 		tokens, err := s.repo.FindRefreshTokensByUserID(userID)
@@ -304,6 +320,7 @@ func (s *Service) Logout(userID uint, refreshToken, accessJTI string, accessTTL 
 	return nil
 }
 
+// Refresh làm mới access token bằng refresh token, kiểm tra refresh token hợp lệ và chưa hết hạn
 func (s *Service) Refresh(refreshToken string) (*LoginResponse, error) {
 	payload, err := s.tokenService.VerifyRefreshToken(refreshToken)
 	if err != nil {
@@ -356,6 +373,8 @@ func (s *Service) Refresh(refreshToken string) (*LoginResponse, error) {
 	}, nil
 }
 
+// SendResetPasswordEmail gửi email đặt lại mật khẩu với mã xác thực
+// Lưu mã đã hash vào Redis để kiểm tra khi đặt lại mật khẩu
 func (s *Service) SendResetPasswordEmail(req EmailRequest) error {
 	req.Email = normalizeEmail(req.Email)
 
@@ -395,6 +414,7 @@ func (s *Service) SendResetPasswordEmail(req EmailRequest) error {
 	return nil
 }
 
+// ResetPassword đặt lại mật khẩu mới nếu mã hợp lệ, đồng thời xóa mã đã sử dụng khỏi Redis
 func (s *Service) ResetPassword(req ResetPasswordRequest) error {
 	if req.NewPassword != req.ConfirmPassword {
 		return appErrors.NewBadRequest("Mật khẩu mới và xác nhận mật khẩu không khớp!")
