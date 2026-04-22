@@ -53,11 +53,66 @@ func seed(db *sql.DB) error {
 			status = VALUES(status),
 			lot_id = VALUES(lot_id)
 	`
-	_, err = db.Exec(deviceQuery, "DEVICE_A_001", "Gate Controller A", 1)
+	_, err = db.Exec(deviceQuery, "SENSOR_A_001", "Slot Sensor Hub A", 1)
 	if err != nil {
 		return fmt.Errorf("lỗi seed device: %v", err)
 	}
-	fmt.Println("✅ Device: DEVICE_A_001")
+
+	_, err = db.Exec(deviceQuery, "GATE_IN_A_001", "Gate In Controller A", 1)
+	if err != nil {
+		return fmt.Errorf("lỗi seed device GATE_IN_A_001: %v", err)
+	}
+
+	_, err = db.Exec(deviceQuery, "GATE_OUT_A_001", "Gate Out Controller A", 1)
+	if err != nil {
+		return fmt.Errorf("lỗi seed device GATE_OUT_A_001: %v", err)
+	}
+
+	fmt.Println("✅ Devices: SENSOR_A_001, GATE_IN_A_001, GATE_OUT_A_001")
+
+	// Gates
+	gateQuery := `
+		INSERT INTO gates (id, name, type, mac_address, lot_id, is_active)
+		VALUES (?, ?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+			name = VALUES(name),
+			type = VALUES(type),
+			mac_address = VALUES(mac_address),
+			lot_id = VALUES(lot_id),
+			is_active = VALUES(is_active)
+	`
+
+	_, err = db.Exec(gateQuery, 1, "Gate In A", "ENTRY", "GATE_IN_A_001", 1, true)
+	if err != nil {
+		return fmt.Errorf("lỗi seed gate vào: %v", err)
+	}
+
+	_, err = db.Exec(gateQuery, 2, "Gate Out A", "EXIT", "GATE_OUT_A_001", 1, true)
+	if err != nil {
+		return fmt.Errorf("lỗi seed gate ra: %v", err)
+	}
+	fmt.Println("✅ Gates: Gate In A, Gate Out A")
+
+	// RFID Cards
+	rfidQuery := `
+		INSERT INTO rfid_cards (uid, card_type, owner_name, is_active)
+		VALUES (?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+			card_type = VALUES(card_type),
+			owner_name = VALUES(owner_name),
+			is_active = VALUES(is_active)
+	`
+
+	_, err = db.Exec(rfidQuery, "GUEST001", "GUEST", nil, true)
+	if err != nil {
+		return fmt.Errorf("lỗi seed thẻ GUEST001: %v", err)
+	}
+
+	_, err = db.Exec(rfidQuery, "USER001", "REGISTERED", "Nguyen Van A", true)
+	if err != nil {
+		return fmt.Errorf("lỗi seed thẻ USER001: %v", err)
+	}
+	fmt.Println("✅ RFID cards: GUEST001, USER001")
 
 	// 8 Parking Slots
 	slotQuery := `
@@ -67,7 +122,7 @@ func seed(db *sql.DB) error {
 	`
 	for i := 1; i <= 8; i++ {
 		slotName := fmt.Sprintf("A%d", i)
-		_, err = db.Exec(slotQuery, slotName, 1, "DEVICE_A_001", i)
+		_, err = db.Exec(slotQuery, slotName, 1, "SENSOR_A_001", i)
 		if err != nil {
 			return fmt.Errorf("lỗi seed slot %s: %v", slotName, err)
 		}

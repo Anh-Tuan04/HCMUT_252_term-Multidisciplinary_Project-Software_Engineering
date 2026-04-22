@@ -10,12 +10,15 @@ import (
 	"backend/internal/auth"
 	authmail "backend/internal/auth/mail"
 	"backend/internal/auth/token"
+	"backend/internal/modules/gate"
 	"backend/internal/modules/iot_device"
+	"backend/internal/modules/iot_gateway"
 	"backend/internal/modules/parking_lot"
+	"backend/internal/modules/parking_session"
 	"backend/internal/modules/parking_slot"
+	"backend/internal/modules/rfid_card"
 	"backend/internal/modules/slot_history"
 	"backend/internal/modules/user"
-	"backend/internal/modules/vehicle_log"
 	"backend/internal/realtime/parking"
 	"backend/pkg/database"
 	"backend/pkg/middleware"
@@ -53,11 +56,14 @@ func main() {
 	// modules
 	authModule := auth.NewModule(db, redisClient, tokenService, mailService)
 	iotDeviceModule := iot_device.NewModule(db)
-	vehicleLogModule := vehicle_log.NewModule(db)
 	slotHistoryModule := slot_history.NewModule(db)
 	parkingLotModule := parking_lot.NewModule(db)
+	gateModule := gate.NewModule(db)
 	userModule := user.NewModule(db)
-	parkingSlotModule := parking_slot.NewModule(db, vehicleLogModule.Service, parkingHub)
+	rfidCardModule := rfid_card.NewModule(db)
+	parkingSessionModule := parking_session.NewModule(db)
+	iotGatewayModule := iot_gateway.NewModule(gateModule.Service, rfidCardModule.Service, parkingSessionModule.Service)
+	parkingSlotModule := parking_slot.NewModule(db, parkingHub)
 
 	// webtransport server chạy riêng
 	if _, certErr := os.Stat("cert.pem"); certErr == nil {
@@ -98,11 +104,13 @@ func main() {
 
 	auth.RegisterRoutes(api, authModule.Handler, authMiddleware)
 	iot_device.RegisterRoutes(api, iotDeviceModule.Handler, authMiddleware, managerOrAdmin)
-	vehicle_log.RegisterRoutes(api, vehicleLogModule.Handler, authMiddleware, managerOrAdmin)
 	slot_history.RegisterRoutes(api, slotHistoryModule.Handler, authMiddleware, managerOrAdmin)
 	parking_lot.RegisterRoutes(api, parkingLotModule.Handler, authMiddleware, managerOrAdmin)
 	parking_slot.RegisterRoutes(api, parkingSlotModule.Handler, authMiddleware, managerOrAdmin)
+	iot_gateway.RegisterRoutes(api, iotGatewayModule.Handler)
+	gate.RegisterRoutes(api, gateModule.Handler, authMiddleware, managerOrAdmin)
 	user.RegisterRoutes(api, userModule.Handler, authMiddleware, adminOnly)
+	rfid_card.RegisterRoutes(api, rfidCardModule.Handler)
 
 	_ = r.Run(":" + cfg.AppPort)
 }
