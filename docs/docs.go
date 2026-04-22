@@ -329,6 +329,183 @@ const docTemplate = `{
                 }
             }
         },
+        "/gates": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gate"
+                ],
+                "summary": "Tạo cổng mới",
+                "parameters": [
+                    {
+                        "description": "Thông tin cổng",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gate.CreateGateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/gates/{gateId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gate"
+                ],
+                "summary": "Lấy thông tin cổng theo ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID cổng",
+                        "name": "gateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gate"
+                ],
+                "summary": "Cập nhật thông tin cổng",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID cổng",
+                        "name": "gateId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thông tin cập nhật",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gate.UpdateGateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gate"
+                ],
+                "summary": "Xoá cổng",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID cổng",
+                        "name": "gateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/iot-devices": {
             "post": {
                 "security": [
@@ -375,6 +552,88 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/iot/camera": {
+            "post": {
+                "description": "Lưu biển số tạm thời theo gate để chờ RFID scan consume",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "iot"
+                ],
+                "summary": "Camera AI gửi biển số",
+                "parameters": [
+                    {
+                        "description": "Dữ liệu từ camera",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/iot_gateway.CameraPlateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/iot_gateway.CameraPlateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/iot/rfid": {
+            "post": {
+                "description": "Xử lý sự kiện quẹt thẻ từ ESP32+RC522, quyết định mở/đóng barie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "iot"
+                ],
+                "summary": "ESP32 quẹt thẻ RFID",
+                "parameters": [
+                    {
+                        "description": "Dữ liệu từ ESP32",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/iot_gateway.RfidScanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/iot_gateway.RfidScanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -568,6 +827,47 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/parking-lots/{id}/gates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "parking_lot"
+                ],
+                "summary": "Lấy danh sách cổng theo bãi đỗ",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID bãi đỗ xe",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -858,55 +1158,6 @@ const docTemplate = `{
                     "slot_history"
                 ],
                 "summary": "Lấy lịch sử theo vị trí đỗ",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID vị trí đỗ xe",
-                        "name": "slotId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/parking-slots/{slotId}/vehicle-logs": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Trả về lịch sử xe ra vào hoặc hoạt động theo slot ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "vehicle_log"
-                ],
-                "summary": "Lấy lịch sử xe theo vị trí đỗ",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1239,6 +1490,77 @@ const docTemplate = `{
                 }
             }
         },
+        "gate.CreateGateRequest": {
+            "type": "object",
+            "required": [
+                "lot_id",
+                "mac_address",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "lot_id": {
+                    "type": "integer"
+                },
+                "mac_address": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "type": {
+                    "enum": [
+                        "ENTRY",
+                        "EXIT"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gate.GateType"
+                        }
+                    ]
+                }
+            }
+        },
+        "gate.GateType": {
+            "type": "string",
+            "enum": [
+                "ENTRY",
+                "EXIT"
+            ],
+            "x-enum-varnames": [
+                "GateTypeEntry",
+                "GateTypeExit"
+            ]
+        },
+        "gate.UpdateGateRequest": {
+            "type": "object",
+            "properties": {
+                "is_active": {
+                    "type": "boolean"
+                },
+                "mac_address": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "type": {
+                    "enum": [
+                        "ENTRY",
+                        "EXIT"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gate.GateType"
+                        }
+                    ]
+                }
+            }
+        },
         "iot_device.CreateIoTDeviceRequest": {
             "type": "object",
             "required": [
@@ -1254,6 +1576,75 @@ const docTemplate = `{
                 },
                 "mac_address": {
                     "type": "string"
+                }
+            }
+        },
+        "iot_gateway.CameraPlateRequest": {
+            "type": "object",
+            "required": [
+                "gate_id",
+                "plate_number"
+            ],
+            "properties": {
+                "gate_id": {
+                    "type": "integer"
+                },
+                "plate_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "iot_gateway.CameraPlateResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "iot_gateway.RfidScanRequest": {
+            "type": "object",
+            "required": [
+                "gate_id",
+                "mac_address",
+                "rfid_uid"
+            ],
+            "properties": {
+                "gate_id": {
+                    "type": "integer"
+                },
+                "mac_address": {
+                    "type": "string"
+                },
+                "rfid_uid": {
+                    "type": "string"
+                }
+            }
+        },
+        "iot_gateway.RfidScanResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "\"open_barrier\" | \"reject\"",
+                    "type": "string"
+                },
+                "lcd_line1": {
+                    "description": "VD: \"BS:51A-123.45\"",
+                    "type": "string"
+                },
+                "lcd_line2": {
+                    "description": "VD: \"Moi vao!\" hoặc \"Tam biet!\"",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "log nội bộ",
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         },

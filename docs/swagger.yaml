@@ -51,6 +51,53 @@ definitions:
     - email
     - new_password
     type: object
+  gate.CreateGateRequest:
+    properties:
+      lot_id:
+        type: integer
+      mac_address:
+        maxLength: 50
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/gate.GateType'
+        enum:
+        - ENTRY
+        - EXIT
+    required:
+    - lot_id
+    - mac_address
+    - name
+    - type
+    type: object
+  gate.GateType:
+    enum:
+    - ENTRY
+    - EXIT
+    type: string
+    x-enum-varnames:
+    - GateTypeEntry
+    - GateTypeExit
+  gate.UpdateGateRequest:
+    properties:
+      is_active:
+        type: boolean
+      mac_address:
+        maxLength: 50
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/gate.GateType'
+        enum:
+        - ENTRY
+        - EXIT
+    type: object
   iot_device.CreateIoTDeviceRequest:
     properties:
       device_name:
@@ -62,6 +109,53 @@ definitions:
     required:
     - device_name
     - mac_address
+    type: object
+  iot_gateway.CameraPlateRequest:
+    properties:
+      gate_id:
+        type: integer
+      plate_number:
+        type: string
+    required:
+    - gate_id
+    - plate_number
+    type: object
+  iot_gateway.CameraPlateResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  iot_gateway.RfidScanRequest:
+    properties:
+      gate_id:
+        type: integer
+      mac_address:
+        type: string
+      rfid_uid:
+        type: string
+    required:
+    - gate_id
+    - mac_address
+    - rfid_uid
+    type: object
+  iot_gateway.RfidScanResponse:
+    properties:
+      action:
+        description: '"open_barrier" | "reject"'
+        type: string
+      lcd_line1:
+        description: 'VD: "BS:51A-123.45"'
+        type: string
+      lcd_line2:
+        description: 'VD: "Moi vao!" hoặc "Tam biet!"'
+        type: string
+      message:
+        description: log nội bộ
+        type: string
+      success:
+        type: boolean
     type: object
   parking_lot.CreateParkingLotRequest:
     properties:
@@ -406,6 +500,119 @@ paths:
       summary: Xác thực email
       tags:
       - auth
+  /gates:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Thông tin cổng
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/gate.CreateGateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tạo cổng mới
+      tags:
+      - gate
+  /gates/{gateId}:
+    delete:
+      parameters:
+      - description: ID cổng
+        in: path
+        name: gateId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Xoá cổng
+      tags:
+      - gate
+    get:
+      parameters:
+      - description: ID cổng
+        in: path
+        name: gateId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy thông tin cổng theo ID
+      tags:
+      - gate
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID cổng
+        in: path
+        name: gateId
+        required: true
+        type: integer
+      - description: Thông tin cập nhật
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/gate.UpdateGateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cập nhật thông tin cổng
+      tags:
+      - gate
   /iot-devices:
     post:
       consumes:
@@ -441,6 +648,60 @@ paths:
       summary: Tạo thiết bị IoT
       tags:
       - iot_device
+  /iot/camera:
+    post:
+      consumes:
+      - application/json
+      description: Lưu biển số tạm thời theo gate để chờ RFID scan consume
+      parameters:
+      - description: Dữ liệu từ camera
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/iot_gateway.CameraPlateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/iot_gateway.CameraPlateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Camera AI gửi biển số
+      tags:
+      - iot
+  /iot/rfid:
+    post:
+      consumes:
+      - application/json
+      description: Xử lý sự kiện quẹt thẻ từ ESP32+RC522, quyết định mở/đóng barie
+      parameters:
+      - description: Dữ liệu từ ESP32
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/iot_gateway.RfidScanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/iot_gateway.RfidScanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: ESP32 quẹt thẻ RFID
+      tags:
+      - iot
   /parking-lots:
     get:
       description: Trả về toàn bộ danh sách bãi đỗ xe
@@ -565,6 +826,32 @@ paths:
       security:
       - BearerAuth: []
       summary: Cập nhật bãi đỗ xe
+      tags:
+      - parking_lot
+  /parking-lots/{id}/gates:
+    get:
+      parameters:
+      - description: ID bãi đỗ xe
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lấy danh sách cổng theo bãi đỗ
       tags:
       - parking_lot
   /parking-slots:
@@ -747,38 +1034,6 @@ paths:
       summary: Lấy lịch sử theo vị trí đỗ
       tags:
       - slot_history
-  /parking-slots/{slotId}/vehicle-logs:
-    get:
-      description: Trả về lịch sử xe ra vào hoặc hoạt động theo slot ID
-      parameters:
-      - description: ID vị trí đỗ xe
-        in: path
-        name: slotId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Lấy lịch sử xe theo vị trí đỗ
-      tags:
-      - vehicle_log
   /parking-slots/sensor/status:
     patch:
       consumes:
