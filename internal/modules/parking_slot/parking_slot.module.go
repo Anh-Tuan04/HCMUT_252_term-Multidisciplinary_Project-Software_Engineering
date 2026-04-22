@@ -1,7 +1,6 @@
 package parking_slot
 
 import (
-	"backend/internal/modules/vehicle_log"
 	"backend/internal/realtime/parking"
 
 	"gorm.io/gorm"
@@ -13,9 +12,9 @@ type Module struct {
 	Handler    *Handler
 }
 
-func NewModule(db *gorm.DB, vehicleLogService *vehicle_log.Service, hub *parking.Hub) *Module {
+func NewModule(db *gorm.DB, hub *parking.Hub) *Module {
 	repo := NewRepository(db)
-	service := NewService(repo, vehicleLogService, hub)
+	service := NewService(repo, hub)
 	handler := NewHandler(service)
 
 	return &Module{

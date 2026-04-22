@@ -4,23 +4,20 @@ import (
 	"errors"
 
 	appErrors "backend/internal/common/errors"
-	"backend/internal/modules/vehicle_log"
 	"backend/internal/realtime/parking"
 
 	"gorm.io/gorm"
 )
 
 type Service struct {
-	repo              *Repository
-	vehicleLogService *vehicle_log.Service
-	hub               *parking.Hub
+	repo *Repository
+	hub  *parking.Hub
 }
 
-func NewService(repo *Repository, vehicleLogService *vehicle_log.Service, hub *parking.Hub) *Service {
+func NewService(repo *Repository, hub *parking.Hub) *Service {
 	return &Service{
-		repo:              repo,
-		vehicleLogService: vehicleLogService,
-		hub:               hub,
+		repo: repo,
+		hub:  hub,
 	}
 }
 
@@ -41,10 +38,6 @@ func (s *Service) updateStatus(slot *ParkingSlot, newStatus SlotStatus) (*Update
 
 	if err := s.repo.UpdateStatus(slot.ID, newStatus); err != nil {
 		return nil, appErrors.NewInternal("Cập nhật trạng thái thất bại")
-	}
-
-	if err := s.vehicleLogService.RecordByStatusTransition(slot.ID, vehicle_log.SlotStatus(oldStatus), vehicle_log.SlotStatus(newStatus)); err != nil {
-		return nil, err
 	}
 
 	result := &UpdateParkingSlotResponse{
