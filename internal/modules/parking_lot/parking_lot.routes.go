@@ -9,6 +9,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *Handler, authMiddleware, mana
 		group.POST("", managerOrAdmin, handler.Create)
 		group.GET("", handler.FindAll)
 		group.GET("/:id", handler.FindByID)
+		group.GET("/:id/gates", managerOrAdmin, handler.GetGatesByLotID)
 		group.PATCH("/:id", managerOrAdmin, handler.Update)
 	}
 }

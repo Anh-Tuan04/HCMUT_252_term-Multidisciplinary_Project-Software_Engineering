@@ -91,6 +91,31 @@ func (h *Handler) FindByID(c *gin.Context) {
 	response.Success(c, 200, "Lấy thông tin bãi đỗ thành công", lot)
 }
 
+// GetGatesByLotID godoc
+// @Summary Lấy danh sách cổng theo bãi đỗ
+// @Tags parking_lot
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "ID bãi đỗ xe"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /parking-lots/{id}/gates [get]
+func (h *Handler) GetGatesByLotID(c *gin.Context) {
+	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.Error(appErrors.NewBadRequest("id không hợp lệ"))
+		return
+	}
+
+	gates, err := h.service.FindGatesByLotID(uint(id64))
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	response.Success(c, 200, "Lấy danh sách cổng thành công", gates)
+}
+
 // Update godoc
 // @Summary Cập nhật bãi đỗ xe
 // @Description Cập nhật thông tin bãi đỗ xe theo ID

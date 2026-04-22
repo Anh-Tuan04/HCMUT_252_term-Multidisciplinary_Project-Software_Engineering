@@ -63,6 +63,22 @@ func (r *Repository) FindSlotsByLotID(lotID uint) ([]ParkingLotSlotResponse, err
 	return slots, nil
 }
 
+func (r *Repository) FindGatesByLotID(lotID uint) ([]ParkingLotGateResponse, error) {
+	var gates []ParkingLotGateResponse
+
+	err := r.db.
+		Table("gates").
+		Select("id, name, type, mac_address, is_active").
+		Where("lot_id = ?", lotID).
+		Order("id ASC").
+		Scan(&gates).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return gates, nil
+}
+
 func (r *Repository) CountStatsByLotID(lotID uint) ([]parkingLotStatsRow, error) {
 	var rows []parkingLotStatsRow
 

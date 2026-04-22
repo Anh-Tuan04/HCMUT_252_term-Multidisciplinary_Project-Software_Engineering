@@ -104,6 +104,14 @@ func (s *Service) FindByID(id uint) (*ParkingLotDetailResponse, error) {
 	}, nil
 }
 
+func (s *Service) FindGatesByLotID(lotID uint) ([]ParkingLotGateResponse, error) {
+	gates, err := s.repo.FindGatesByLotID(lotID)
+	if err != nil {
+		return nil, appErrors.NewInternal("Lấy danh sách cổng thất bại")
+	}
+	return gates, nil
+}
+
 func (s *Service) Update(id uint, req UpdateParkingLotRequest) (*ParkingLotResponse, error) {
 	data := map[string]interface{}{}
 

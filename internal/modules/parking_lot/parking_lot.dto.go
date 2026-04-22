@@ -24,6 +24,14 @@ type ParkingLotSlotResponse struct {
 	PortNumber int    `json:"port_number"`
 }
 
+type ParkingLotGateResponse struct {
+	ID         uint   `json:"id"`
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	MacAddress string `json:"mac_address"`
+	IsActive   bool   `json:"is_active"`
+}
+
 type ParkingLotStatsResponse struct {
 	Total     int64 `json:"total"`
 	Available int64 `json:"available"`
