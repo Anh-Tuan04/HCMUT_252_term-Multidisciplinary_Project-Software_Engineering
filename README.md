@@ -85,6 +85,14 @@ docker compose up -d
 
 Mặc định compose map MySQL ra cổng `3307`.
 
+Mở terminal trong doker và chạy câu lệnh sau để tạo db redis:
+
+```bash
+docker run --name parking -p 6379:6379 -d redis
+```
+
+Sẽ tạo ra db redis chạy trên cổng `6379`.
+
 ## 5) Cấu hình môi trường
 
 Project đọc `.env.local` khi `APP_ENV=local`.
