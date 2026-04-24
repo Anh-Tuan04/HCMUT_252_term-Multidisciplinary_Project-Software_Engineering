@@ -1,0 +1,8 @@
+# Xem tất cả phiên:
+Invoke-RestMethod http://localhost:8081/api/v1/parking-sessions
+
+# Đóng phiên bằng mã thẻ:
+Invoke-RestMethod -Method DELETE http://localhost:8081/api/v1/parking-sessions/card/34F9CA06
+
+# Đóng phiên bằng ID:
+Invoke-RestMethod -Method DELETE http://localhost:8081/api/v1/parking-sessions/5
