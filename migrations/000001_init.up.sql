@@ -93,8 +93,8 @@ CREATE INDEX idx_parking_sessions_is_active ON parking_sessions(is_active);
 CREATE TABLE refresh_tokens (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     token_hash VARCHAR(255) NOT NULL,
-    device VARCHAR(100) NULL,
-    ip VARCHAR(45) NULL,
+    device VARCHAR(255) NULL,
+    ip VARCHAR(255) NULL,
     expires_at DATETIME NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id BIGINT UNSIGNED NOT NULL,
