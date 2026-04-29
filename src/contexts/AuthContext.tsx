@@ -1,8 +1,13 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { API_BASE_URL } from "../constants/apiConfig";
-import { LocalStorageAuthSessionStore } from "../servies/auth/authSessionStore";
+import {
+  SESSION_CHANGE_EVENT,
+  RECOVERY_KEY,
+  SESSION_KEY,
+  LocalStorageAuthSessionStore,
+} from "../servies/auth/authSessionStore";
 import { RestAuthGateway } from "../servies/auth/restAuthGateway";
 import { FetchApiClient } from "../servies/http/fetchApiClient";
 import { RestUserGateway } from "../servies/user/restUserGateway";
@@ -60,6 +65,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [recovery, setRecovery] = useState<RecoverySession | null>(() =>
     authSessionStore.readRecovery(),
   );
+
+  useEffect(() => {
+    const syncSession = () => {
+      setSession(authSessionStore.readSession());
+    };
+
+    const syncRecovery = () => {
+      setRecovery(authSessionStore.readRecovery());
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === SESSION_KEY || event.key === null) {
+        syncSession();
+      }
+
+      if (event.key === RECOVERY_KEY || event.key === null) {
+        syncRecovery();
+      }
+    };
+
+    window.addEventListener(SESSION_CHANGE_EVENT, syncSession);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener(SESSION_CHANGE_EVENT, syncSession);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
 
   const signIn = async (
     email: string,

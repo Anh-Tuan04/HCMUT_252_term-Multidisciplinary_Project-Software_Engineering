@@ -48,6 +48,7 @@ export class RestAuthGateway implements AuthGateway {
       path: "/auth/logout",
       includeCredentials: true,
       accessToken,
+      skipAuthRefresh: true,
     });
   }
 

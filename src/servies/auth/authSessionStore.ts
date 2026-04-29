@@ -1,7 +1,8 @@
 import type { AuthSession, RecoverySession } from "../../types/auth";
 
-const SESSION_KEY = "smart-parking-auth-session-v1";
-const RECOVERY_KEY = "smart-parking-auth-recovery-v1";
+export const SESSION_KEY = "smart-parking-auth-session-v1";
+export const RECOVERY_KEY = "smart-parking-auth-recovery-v1";
+const SESSION_CHANGE_EVENT = "smart-parking-auth-session-change";
 
 const parseJson = <TValue>(raw: string | null): TValue | null => {
   if (!raw) {
@@ -13,6 +14,14 @@ const parseJson = <TValue>(raw: string | null): TValue | null => {
   } catch {
     return null;
   }
+};
+
+const notifySessionChange = (): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent(SESSION_CHANGE_EVENT));
 };
 
 export interface AuthSessionStore {
@@ -39,6 +48,7 @@ export class LocalStorageAuthSessionStore implements AuthSessionStore {
     }
 
     window.localStorage.setItem(SESSION_KEY, JSON.stringify(value));
+    notifySessionChange();
   }
 
   clearSession(): void {
@@ -47,6 +57,7 @@ export class LocalStorageAuthSessionStore implements AuthSessionStore {
     }
 
     window.localStorage.removeItem(SESSION_KEY);
+    notifySessionChange();
   }
 
   readRecovery(): RecoverySession | null {
@@ -83,3 +94,5 @@ export class LocalStorageAuthSessionStore implements AuthSessionStore {
     window.localStorage.removeItem(RECOVERY_KEY);
   }
 }
+
+export { SESSION_CHANGE_EVENT };

@@ -12,6 +12,7 @@ export interface ApiRequest {
   body?: unknown;
   accessToken?: string;
   includeCredentials?: boolean;
+  skipAuthRefresh?: boolean;
 }
 
 export interface ApiClient {
