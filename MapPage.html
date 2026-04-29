@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ thống Grid 829x435</title>
+    <style>
+      /* 1. Thiết lập trang tổng thể */
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+
+        /* Đảm bảo vừa khít 1 tab Chrome */
+        width: 100vw;
+        height: 100vh;
+
+        /* Chỉ hiện thanh cuộn khi cửa sổ nhỏ hơn mức này */
+        min-width: 1000px;
+        min-height: 720px;
+        overflow: auto;
+
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+      }
+
+      /* 2. Các thành phần thông tin phía trên (Cố định vị trí px) */
+      .clock-card {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 210px;
+        height: 90px;
+        background-color: #ffffff;
+        border: 2px solid #2c3e50;
+        border-radius: 10px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+      }
+
+      .clock-time {
+        font-size: 32px;
+        line-height: 1;
+        font-weight: 700;
+        color: #1f2d3d;
+      }
+
+      .clock-date {
+        margin-top: 5px;
+        font-size: 13px;
+        line-height: 1.2;
+        color: #3b3b3b;
+        text-align: center;
+        padding: 0 8px;
+      }
+
+      .slot-stats {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 500px;
+        height: 90px;
+        background-color: #ffffff;
+        border: 2px solid #2c3e50;
+        border-radius: 10px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: stretch;
+        z-index: 20;
+      }
+
+      .stats-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .stats-divider {
+        width: 1px;
+        background-color: #c9d2db;
+        margin: 10px 0;
+      }
+
+      .stats-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1f2d3d;
+      }
+
+      .stats-value {
+        margin-top: 2px;
+        font-size: 24px;
+        font-weight: 700;
+        color: #0c6c3d;
+      }
+
+      .top-right-actions {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 20;
+      }
+
+      .corner-btn {
+        width: 60px;
+        height: 60px;
+        border: 2px solid #2c3e50;
+        border-radius: 10px;
+        background-color: #ffffff;
+        font-size: 20px;
+        font-weight: 700;
+        color: #2c3e50;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .corner-btn:hover {
+        background-color: #f1f1f1;
+      }
+
+      /* 3. Khu vực trung tâm: Bãi đỗ xe */
+      .map-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%; /* Lấp đầy chiều cao body */
+        /* Căn chỉnh padding để bãi xe nằm giữa khoảng trống của stats và reload */
+        padding-top: 60px;
+        padding-bottom: 40px;
+        box-sizing: border-box;
+      }
+
+      .map-container {
+        width: 830px;
+        height: 435px;
+        display: grid;
+        grid-template: repeat(2, 1fr) / repeat(4, 1fr);
+        border: 5px solid #2c3e50;
+        gap: 5px;
+        background-color: #2c3e50;
+        box-sizing: border-box;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .map-item {
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: visible;
+        cursor: pointer;
+      }
+
+      .car-visual {
+        width: 182px;
+        height: 112px;
+        object-fit: contain;
+        display: block;
+        position: relative;
+        z-index: 2;
+      }
+
+      .map-item-down .car-visual {
+        transform: rotate(90deg);
+      }
+      .map-item-up .car-visual {
+        transform: rotate(-90deg);
+      }
+
+      /* 4. Trạng thái cảnh báo */
+      .warning-box {
+        width: 112px;
+        height: 182px;
+        background-color: #ffd54f;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+        animation: blink 2s infinite;
+      }
+
+      .warning-icon {
+        color: #d32f2f;
+        font-size: 40px;
+        font-weight: 700;
+      }
+
+      .map-item.state-occupied .car-visual {
+        display: block;
+      }
+      .map-item.state-occupied .warning-box,
+      .map-item.state-empty .car-visual,
+      .map-item.state-empty .warning-box,
+      .map-item.state-warning .car-visual {
+        display: none;
+      }
+      .map-item.state-warning .warning-box {
+        display: flex;
+      }
+
+      /* 5. Menu chọn trạng thái */
+      .slot-menu {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+        background-color: rgba(255, 255, 255, 0.95);
+        z-index: 5;
+        box-sizing: border-box;
+      }
+
+      .map-item.is-selecting .slot-menu {
+        display: flex;
+      }
+
+      .slot-menu-close {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 1px solid #9e9e9e;
+        border-radius: 4px;
+        background-color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        z-index: 10;
+      }
+
+      .slot-menu-close:hover {
+        background-color: #f1f1f1;
+      }
+
+      .slot-btn {
+        width: 85px;
+        height: 26px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .btn-empty {
+        background-color: #43a047;
+        color: #ffffff;
+      }
+      .btn-occupied {
+        background-color: #e53935;
+        color: #ffffff;
+      }
+      .btn-warning {
+        background-color: #fbc02d;
+        color: #1f1f1f;
+      }
+
+      /* 6. Các nút chức năng phía dưới (Đã hạ thấp nút Reload) */
+      .reload-btn {
+        position: absolute;
+        bottom: 10px; /* Hạ thấp xuống sát đáy hơn (trước là 20px) */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 160px;
+        height: 70px;
+        border: 2px solid #2c3e50;
+        border-radius: 12px;
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .reload-btn img {
+        width: 35px;
+        height: 35px;
+      }
+
+      .up-arrow {
+        position: absolute;
+        right: 60px; /* Dịch vào trong nhiều hơn */
+        bottom: 40px; /* Dịch lên trên nhiều hơn */
+        background: none;
+        border: none;
+        color: #2c3e50;
+        font-size: 45px; /* Làm mũi tên to hơn */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+
+        transition: color 0.2s;
+      }
+
+      /* 7. Animations */
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      @keyframes driveDown {
+        0% {
+          transform: translateY(-120%) rotate(90deg);
+          opacity: 0;
+        }
+        100% {
+          transform: translateY(0) rotate(90deg);
+          opacity: 1;
+        }
+      }
+
+      @keyframes driveUp {
+        0% {
+          transform: translateY(120%) rotate(-90deg);
+          opacity: 0;
+        }
+        100% {
+          transform: translateY(0) rotate(-90deg);
+          opacity: 1;
+        }
+      }
+
+      @keyframes exitUp {
+        0% {
+          transform: translateY(0) rotate(90deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-120%) rotate(90deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes exitDown {
+        0% {
+          transform: translateY(0) rotate(-90deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120%) rotate(-90deg);
+          opacity: 0;
+        }
+      }
+
+      .map-item.map-item-down.anim-in .car-visual {
+        animation: driveDown 0.6s forwards;
+      }
+      .map-item.map-item-down.anim-out .car-visual {
+        animation: exitUp 0.6s forwards;
+      }
+      .map-item.map-item-up.anim-in .car-visual {
+        animation: driveUp 0.6s forwards;
+      }
+      .map-item.map-item-up.anim-out .car-visual {
+        animation: exitDown 0.6s forwards;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="clock-card" aria-live="polite">
+      <div id="clockTime" class="clock-time">00:00</div>
+      <div id="clockDate" class="clock-date">
+        Thứ 2, ngày 01 tháng 1 năm 2025
+      </div>
+    </div>
+
+    <div class="slot-stats" aria-live="polite">
+      <div class="stats-col">
+        <div class="stats-title">Số ô còn trống</div>
+        <div id="emptyCount" class="stats-value">0/0</div>
+      </div>
+      <div class="stats-divider" aria-hidden="true"></div>
+      <div class="stats-col">
+        <div class="stats-title">Số ô hiện có</div>
+        <div id="occupiedCount" class="stats-value">0/0</div>
+      </div>
+    </div>
+
+    <div class="top-right-actions">
+      <button type="button" class="corner-btn" aria-label="Button 1">1</button>
+      <button type="button" class="corner-btn" aria-label="Button 2">2</button>
+    </div>
+
+    <div class="map-wrapper">
+      <div class="map-container">
+        <div
+          class="map-item map-item-down state-occupied"
+          data-state="occupied"
+        >
+          <img
+            class="car-visual"
+            src="/client/src/assets/MapPage/BlueCarTopView.svg"
+            alt="Image 1"
+          />
+          <div class="warning-box" aria-hidden="true">
+            <span class="warning-icon" aria-hidden="true">⚠</span>
+          </div>
+          <div class="slot-menu" role="group" aria-label="Lua chon trang thai">
+            <button
+              class="slot-btn btn-occupied"
+              type="button"
+              data-value="occupied"
+            >
+              Có xe
+            </button>
+            <button class="slot-btn btn-empty" type="button" data-value="empty">
+              Còn trống
+            </button>
+            <button
+              class="slot-btn btn-warning"
+              type="button"
+              data-value="warning"
+            >
+              Bảo trì
+            </button>
+          </div>
+        </div>
+        <div
+          class="map-item map-item-down state-occupied"
+          data-state="occupied"
+        >
+          <img
+            class="car-visual"
+            src="/client/src/assets/MapPage/BlueCarTopView.svg"
+            alt="Image 2"
+          />
+          <div class="warning-box" aria-hidden="true">
+            <span class="warning-icon" aria-hidden="true">⚠</span>
+          </div>
+          <div class="slot-menu" role="group" aria-label="Lua chon trang thai">
+            <button
+              class="slot-btn btn-occupied"
+              type="button"
+              data-value="occupied"
+            >
+              Có xe
+            </button>
+            <button class="slot-btn btn-empty" type="button" data-value="empty">
+              Còn trống
+            </button>
+            <button
+              class="slot-btn btn-warning"
+              type="button"
+              data-value="warning"
+            >
+              Bảo trì
+            </button>
+          </div>
+        </div>
+        <div
+          class="map-item map-item-down state-occupied"
+          data-state="occupied"
+        >
+          <img
+            class="car-visual"
+            src="/client/src/assets/MapPage/BlueCarTopView.svg"
+            alt="Image 3"
+          />
+          <div class="warning-box" aria-hidden="true">
+            <span class="warning-icon" aria-hidden="true">⚠</span>
+          </div>
+          <div class="slot-menu" role="group" aria-label="Lua chon trang thai">
+            <button
+              class="slot-btn btn-occupied"
+              type="button"
+              data-value="occupied"
+            >
+              Có xe
+            </button>
+            <button class="slot-btn btn-empty" type="button" data-value="empty">
+              Còn trống
+            </button>
+            <button
+              class="slot-btn btn-warning"
+              type="button"
+              data-value="warning"
+            >
+              Bảo trì
+            </button>
+          </div>
+        </div>
+        <div
+          class="map-item map-item-down state-occupied"
+          data-state="occupied"
+        >
+          <img
+            class="car-visual"
+            src="/client/src/assets/MapPage/BlueCarTopView.svg"
+            alt="Image 4"
+          />
+          <div class="warning-box" aria-hidden="true">
+            <span class="warning-icon" aria-hidden="true">⚠</span>
+          </div>
+          <div class="slot-menu" role="group" aria-label="Lua chon trang thai">
+            <button
+              class="slot-btn btn-occupied"
+              type="button"
+              data-value="occupied"
+            >
+              Có xe
+            </button>
+            <button class="slot-btn btn-empty" type="button" data-value="empty">
+              Còn trống
+            </button>
+            <button
+              class="slot-btn btn-warning"
+              type="button"
+              data-value="warning"
+            >
+              Bảo trì
+            </button>
+          </div>
+        </div>
+
+        <div class="map-item map-item-up state-occupied" data-state="occupied">
+          <img
+            class="car-visual"
+            src="/client/src/assets/MapPage/BlueCarTopView.svg"
+            alt="Image 5"
+          />
+          <div class="warning-box" aria-hidden="true">
+            <span class="warning-icon" aria-hidden="true">⚠</span>
+          </div>
+          <div class="slot-menu" role="group" aria-label="Lua chon trang thai">
+            <button
+              class="slot-btn btn-occupied"
+              type="button"
+              data-value="occupied"
+            >
+              Có xe
+            </button>
+            <button class="slot-btn btn-empty" type="button" data-value="empty">
+              Còn trống
+            </button>
+            <button
+              class="slot-btn btn-warning"
+              type="button"
+              data-value="warning"
+            >
+              Bảo trì
+            </button>
+          </div>
+        </div>
+        <div class="map-item map-item-up state-occupied" data-state="occupied">
+          <img
+            class="car-visual"
+            src="/client/src/assets/MapPage/BlueCarTopView.svg"
+            alt="Image 6"
+          />
+          <div class="warning-box" aria-hidden="true">
+            <span class="warning-icon" aria-hidden="true">⚠</span>
+          </div>
+          <div class="slot-menu" role="group" aria-label="Lua chon trang thai">
+            <button
+              class="slot-btn btn-occupied"
+              type="button"
+              data-value="occupied"
+            >
+              Có xe
+            </button>
+            <button class="slot-btn btn-empty" type="button" data-value="empty">
+              Còn trống
+            </button>
+            <button
+              class="slot-btn btn-warning"
+              type="button"
+              data-value="warning"
+            >
+              Bảo trì
+            </button>
+          </div>
+        </div>
+        <div class="map-item map-item-up state-occupied" data-state="occupied">
+          <img
+            class="car-visual"
+            src="/client/src/assets/MapPage/BlueCarTopView.svg"
+            alt="Image 7"
+          />
+          <div class="warning-box" aria-hidden="true">
+            <span class="warning-icon" aria-hidden="true">⚠</span>
+          </div>
+          <div class="slot-menu" role="group" aria-label="Lua chon trang thai">
+            <button
+              class="slot-btn btn-occupied"
+              type="button"
+              data-value="occupied"
+            >
+              Có xe
+            </button>
+            <button class="slot-btn btn-empty" type="button" data-value="empty">
+              Còn trống
+            </button>
+            <button
+              class="slot-btn btn-warning"
+              type="button"
+              data-value="warning"
+            >
+              Bảo trì
+            </button>
+          </div>
+        </div>
+        <div class="map-item map-item-up state-occupied" data-state="occupied">
+          <img
+            class="car-visual"
+            src="/client/src/assets/MapPage/BlueCarTopView.svg"
+            alt="Image 8"
+          />
+          <div class="warning-box" aria-hidden="true">
+            <span class="warning-icon" aria-hidden="true">⚠</span>
+          </div>
+          <div class="slot-menu" role="group" aria-label="Lua chon trang thai">
+            <button
+              class="slot-btn btn-occupied"
+              type="button"
+              data-value="occupied"
+            >
+              Có xe
+            </button>
+            <button class="slot-btn btn-empty" type="button" data-value="empty">
+              Còn trống
+            </button>
+            <button
+              class="slot-btn btn-warning"
+              type="button"
+              data-value="warning"
+            >
+              Bảo trì
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="reload-btn" aria-label="Reload">
+      <img src="/client/src/assets/MapPage/ReloadIcon.svg" alt="Reload" />
+    </button>
+
+    <div class="up-arrow" aria-label="Huong len tren">↑</div>
+
+    <script>
+      const slots = document.querySelectorAll(".map-item");
+      const ANIMATION_MS = 600;
+      const timers = new WeakMap();
+      const clockTime = document.getElementById("clockTime");
+      const clockDate = document.getElementById("clockDate");
+      const emptyCountEl = document.getElementById("emptyCount");
+      const occupiedCountEl = document.getElementById("occupiedCount");
+
+      function formatTime(date) {
+        const hh = String(date.getHours()).padStart(2, "0");
+        const mm = String(date.getMinutes()).padStart(2, "0");
+        return `${hh}:${mm}`;
+      }
+
+      function formatDateVi(date) {
+        const weekdayMap = {
+          0: "Chủ nhật",
+          1: "Thứ 2",
+          2: "Thứ 3",
+          3: "Thứ 4",
+          4: "Thứ 5",
+          5: "Thứ 6",
+          6: "Thứ 7",
+        };
+
+        const weekday = weekdayMap[date.getDay()];
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        return `${weekday}, ngày ${day} tháng ${month} năm ${year}`;
+      }
+
+      function updateDateTime() {
+        const now = new Date();
+        if (clockTime) {
+          clockTime.textContent = formatTime(now);
+        }
+        if (clockDate) {
+          clockDate.textContent = formatDateVi(now);
+        }
+      }
+
+      function updateSlotStats() {
+        const totalSlots = slots.length;
+        let occupied = 0;
+        let empty = 0;
+        let warning = 0;
+
+        slots.forEach((slot) => {
+          const state = slot.dataset.state;
+          if (state === "occupied") {
+            occupied += 1;
+            return;
+          }
+          if (state === "empty") {
+            empty += 1;
+            return;
+          }
+          if (state === "warning") {
+            warning += 1;
+          }
+        });
+
+        const usable = Math.max(totalSlots - warning, 0);
+
+        if (emptyCountEl) {
+          emptyCountEl.textContent = `${empty}/${usable}`;
+        }
+
+        if (occupiedCountEl) {
+          occupiedCountEl.textContent = `${occupied}/${usable}`;
+        }
+      }
+
+      function clearTimer(slot) {
+        const pending = timers.get(slot);
+        if (pending) {
+          clearTimeout(pending);
+        }
+      }
+
+      function clearAnimation(slot) {
+        slot.classList.remove("anim-in", "anim-out");
+      }
+
+      function setStateClasses(slot, state) {
+        slot.dataset.state = state;
+        slot.classList.remove("state-occupied", "state-empty", "state-warning");
+        slot.classList.add(`state-${state}`);
+        updateSlotStats();
+      }
+
+      function changeSlotState(slot, nextState) {
+        const currentState = slot.dataset.state || "empty";
+
+        if (currentState === nextState) {
+          return;
+        }
+
+        clearTimer(slot);
+        clearAnimation(slot);
+
+        if (currentState === "occupied" && nextState !== "occupied") {
+          slot.classList.add("anim-out");
+          const outTimer = setTimeout(() => {
+            clearAnimation(slot);
+            setStateClasses(slot, nextState);
+          }, ANIMATION_MS);
+          timers.set(slot, outTimer);
+          return;
+        }
+
+        if (currentState !== "occupied" && nextState === "occupied") {
+          setStateClasses(slot, "occupied");
+          slot.classList.add("anim-in");
+          const inTimer = setTimeout(() => {
+            clearAnimation(slot);
+          }, ANIMATION_MS);
+          timers.set(slot, inTimer);
+          return;
+        }
+
+        setStateClasses(slot, nextState);
+      }
+
+      slots.forEach((slot) => {
+        const menu = slot.querySelector(".slot-menu");
+        if (menu && !menu.querySelector(".slot-menu-close")) {
+          const closeButton = document.createElement("button");
+          closeButton.type = "button";
+          closeButton.className = "slot-menu-close";
+          closeButton.textContent = "❌";
+          closeButton.setAttribute("aria-label", "Dong lua chon");
+          closeButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            slot.classList.remove("is-selecting");
+          });
+          menu.appendChild(closeButton);
+        }
+
+        slot.addEventListener("click", (event) => {
+          if (event.target.closest(".slot-btn")) {
+            return;
+          }
+          slot.classList.toggle("is-selecting");
+        });
+
+        slot.querySelectorAll(".slot-btn").forEach((button) => {
+          button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const nextState = button.dataset.value;
+            if (!nextState) {
+              return;
+            }
+            changeSlotState(slot, nextState);
+            slot.classList.remove("is-selecting");
+          });
+        });
+      });
+
+      updateDateTime();
+      updateSlotStats();
+      setInterval(updateDateTime, 1000);
+    </script>
+  </body>
+</html>
