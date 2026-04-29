@@ -36,6 +36,11 @@ type Server struct {
 }
 
 func NewServer(hub *Hub, certFile, keyFile string) *Server {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Server{
 		hub:      hub,
 		certFile: certFile,
@@ -43,7 +48,9 @@ func NewServer(hub *Hub, certFile, keyFile string) *Server {
 		server: &webtransport.Server{
 			H3: &http3.Server{
 				TLSConfig: &tls.Config{
-					MinVersion: tls.VersionTLS13,
+					Certificates: []tls.Certificate{cert},
+					MinVersion:   tls.VersionTLS13,
+					NextProtos:   []string{"h3"},
 				},
 			},
 		},
@@ -57,7 +64,7 @@ func (s *Server) Run(addr string) error {
 	s.server.H3.Addr = addr
 	s.server.H3.Handler = mux
 
-	return s.server.ListenAndServeTLS(s.certFile, s.keyFile)
+	return s.server.ListenAndServe()
 }
 
 func (s *Server) handleUpgrade(w http.ResponseWriter, r *http.Request) {

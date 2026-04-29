@@ -36,6 +36,25 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
+
+// getCertPaths trả về đường dẫn certificate
+// Dev: dùng mặc định cert.pem, key.pem
+// Production: đọc từ environment variables
+func getCertPaths() (certPath, keyPath string) {
+	certPath = os.Getenv("TLS_CERT")
+	keyPath = os.Getenv("TLS_KEY")
+
+	// Fallback cho dev environment
+	if certPath == "" {
+		certPath = "cert.pem"
+	}
+	if keyPath == "" {
+		keyPath = "key.pem"
+	}
+
+	return certPath, keyPath
+}
+
 func main() {
 	cfg := configs.LoadConfig()
 
@@ -61,25 +80,29 @@ func main() {
 	gateModule := gate.NewModule(db)
 	userModule := user.NewModule(db)
 	rfidCardModule := rfid_card.NewModule(db)
+	// rfidCardModule := rfid_card.NewModule(db, userModule.Service)
 	parkingSessionModule := parking_session.NewModule(db)
 	iotGatewayModule := iot_gateway.NewModule(gateModule.Service, rfidCardModule.Service, parkingSessionModule.Service)
 	parkingSlotModule := parking_slot.NewModule(db, parkingHub)
 
-	// webtransport server chạy riêng
-	if _, certErr := os.Stat("cert.pem"); certErr == nil {
-		if _, keyErr := os.Stat("key.pem"); keyErr == nil {
-			go func() {
-				wtServer := parking.NewServer(parkingHub, "cert.pem", "key.pem")
-				if err := wtServer.Run(":8443"); err != nil {
-					log.Printf("webtransport server stopped: %v", err)
-				}
-			}()
-		} else {
-			log.Printf("skip webtransport: key file not found: %v", keyErr)
+	// Khởi động WebTransport server
+	certPath, keyPath := getCertPaths()
+	go func() {
+		if _, err := os.Stat(certPath); err != nil {
+			log.Printf("WebTransport disabled: cert file not found at %s", certPath)
+			return
 		}
-	} else {
-		log.Printf("skip webtransport: cert file not found: %v", certErr)
-	}
+		if _, err := os.Stat(keyPath); err != nil {
+			log.Printf("WebTransport disabled: key file not found at %s", keyPath)
+			return
+		}
+
+		wtServer := parking.NewServer(parkingHub, certPath, keyPath)
+		log.Printf("Starting WebTransport server on :8443 (cert: %s, key: %s)", certPath, keyPath)
+		if err := wtServer.Run(":8443"); err != nil {
+			log.Printf("WebTransport server stopped: %v", err)
+		}
+	}()
 
 	r := gin.New()
 	if err := r.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
