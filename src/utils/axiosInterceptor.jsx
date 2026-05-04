@@ -63,11 +63,9 @@ instance.interceptors.request.use( // Register a request interceptor to attach a
 
 instance.interceptors.response.use( // Register a response interceptor for refresh logic.
 	(response) => { // Handle successful responses.
-		console.log('Response received:', response) // Log the response for debugging.
 		return response // Pass through successful responses.
 	}, // End response success handler.
 	async (error) => { // Handle failed responses, including 401 refresh flow.
-		console.log('Response error:', error) // Log the error for debugging.
 		const originalRequest = error.config ?? {} // Capture the original request config.
 		const status = error.response?.status // Read the HTTP status if present.
 		const requestUrl = String(originalRequest.url ?? '') // Normalize the original URL string.
