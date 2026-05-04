@@ -3,8 +3,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setAccount } from "../../../redux/slices/userSlice";
 import { toast } from "react-toastify";
-import type { RfidCard } from "../../../interfaces/rfid_card.interface";
-import type { UserProfile } from "../../../interfaces/user.interface";
+import type { RfidCard, UserProfile } from "../../../interfaces";
 
 import {
   getMyProfile,

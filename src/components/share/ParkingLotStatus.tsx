@@ -9,7 +9,7 @@ import type {
     ParkingLotDetail,
     ParkingSlot,
     SlotStatus,
-} from "../../interfaces/parking-lot.interface";
+} from "../../interfaces";
 
 import {
     getParkingLots,
@@ -189,6 +189,7 @@ const ParkingLotStatus = () => {
         }, 0);
 
         return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedLotId]);
 
     useEffect(() => {
@@ -199,6 +200,7 @@ const ParkingLotStatus = () => {
         }, 5000);
 
         return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedLotId]);
 
     const activeLotDetail =
@@ -273,11 +275,20 @@ const ParkingLotStatus = () => {
                             </button>
 
                             <button
-                                onClick={() => { setShowMenu(false); navigate(isAdmin ? "/admin" : "/user"); }}
+                                onClick={() => { setShowMenu(false); navigate("/user"); }}
                                 className="dropdown-item"
                             >
-                                ⚙️ {isAdmin ? "Quản trị hệ thống" : "Trang cá nhân"}
+                                ⚙️ "Trang cá nhân"
                             </button>
+
+                            {isAdmin && (
+                                <button
+                                    onClick={() => { setShowMenu(false); navigate("/admin"); }}
+                                    className="dropdown-item"
+                                >
+                                    🛠️ Quản trị hệ thống
+                                </button>
+                            )}
 
                             <button
                                 onClick={handleLogout}
