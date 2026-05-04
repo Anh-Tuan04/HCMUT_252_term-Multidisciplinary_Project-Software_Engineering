@@ -3,15 +3,14 @@ import { Routes, Route } from 'react-router-dom';
 // import Homepage from './components/user/HomePage.js';
 // import AdminLayout from './components/admin/AdminLayout.js';
 // import AdminRoute from './pages/admin.private.route.js';
-// import PrivateRoute from './pages/private.route.js';
+import PrivateRoute from './pages/private.route.js';
 import NotFound from './pages/error.js';
 import Login from './pages/login.js';
 import Register from './pages/register.js';
-// import ResetPassword from "./pages/resetPassword.js";
+import ResetPassword from "./pages/resetPassword.js";
 import WelcomePage from './components/WelcomePage.js';
-// import ParkingLotStatus from './components/share/ParkingLotStatus.js';
-// import PrivateRoute from './pages/private.route.js';
-// import ChangePassword from './pages/changePassword.js';
+import ParkingLotStatus from './components/share/ParkingLotStatus.js';
+import ChangePassword from './pages/changePassword.js';
 // import UserLayout from './components/user/UserLayout.js';
 // import MyProfile from './components/user/MyProfile/MyProfile.js';
 
@@ -60,10 +59,10 @@ const App = () => {
           <Route path="users" element={<ManagerUser />} /> */}
         {/* </Route> */}
         <Route path="/" element={<WelcomePage />} />
-        {/* <Route path="/parking-status" element={<PrivateRoute><ParkingLotStatus /></PrivateRoute>} />
-        <Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} /> */}
+        <Route path="/parking-status" element={<PrivateRoute><ParkingLotStatus /></PrivateRoute>} />
+        <Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
         <Route path="/login" element={<Login />} />
-        {/* <Route path="/reset-password" element={<ResetPassword />} /> */}
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/register" element={<Register />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
