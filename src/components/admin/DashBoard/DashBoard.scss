@@ -1,0 +1,331 @@
+// ─── Variables ────────────────────────────────────────────────────────────────
+
+$bg-page:    #f8fafc;
+$bg-card:    #ffffff;
+$border:     #e2e8f0;
+$text-dark:  #0f172a;
+$text-mid:   #1e293b;
+$text-muted: #64748b;
+$text-faint: #94a3b8;
+
+$blue:  #4A90D9;
+$amber: #F5B942;
+$green: #22c55e;
+$orange:#f97316;
+$red:   #ef4444;
+
+$radius-card: 16px;
+$radius-sm:   10px;
+
+// ─── Wrapper ──────────────────────────────────────────────────────────────────
+
+.dtd-wrapper {
+    background: $bg-page;
+    min-height: 100vh;
+    padding: 28px 24px;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+// ─── Title ────────────────────────────────────────────────────────────────────
+
+.dtd-title {
+    margin: 0 0 20px;
+    font-size: 24px;
+    font-weight: 700;
+    color: $text-dark;
+}
+
+// ─── Filters ─────────────────────────────────────────────────────────────────
+
+.dtd-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.filter-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    padding: 8px 14px;
+
+    &__date,
+    &__select {
+        border: none;
+        outline: none;
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-mid;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    &__select {
+        min-width: 180px;
+    }
+}
+
+// ─── Body (chart + info) ──────────────────────────────────────────────────────
+
+.dtd-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+// ─── Cards ────────────────────────────────────────────────────────────────────
+
+.dtd-card {
+    background: $bg-card;
+    border-radius: $radius-card;
+    padding: 20px 24px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+
+    &--chart {
+        flex: 3;
+        min-width: 0; // allow shrink inside flex
+    }
+
+    &--info {
+        flex: 1;
+        min-width: 220px;
+    }
+
+    &__title {
+        margin: 0 0 16px;
+        font-size: 16px;
+        font-weight: 600;
+        color: $text-mid;
+    }
+}
+
+// ─── Custom legend ────────────────────────────────────────────────────────────
+
+.dtd-legend {
+    display: flex;
+    justify-content: center;
+    gap: 56px;
+    margin-top: 8px;
+
+    &__item + &__item {
+        margin-left: 56px;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: $text-muted;
+    }
+
+    &__dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        flex-shrink: 0;
+
+        &--blue  { background: #4A90D9; }
+        &--amber { background: #F5B942; }
+    }
+}
+
+// ─── Axis labels ──────────────────────────────────────────────────────────────
+
+.dtd-axis-label--x {
+    text-align: center;
+    font-size: 12px;
+    color: $text-muted;
+    margin: 0;
+}
+
+.dtd-axis-label--y {
+    font-size: 12px;
+    color: $text-muted;
+    margin: 0 0 4px 32px;
+}
+
+// ─── Loading placeholder ──────────────────────────────────────────────────────
+
+.dtd-loading {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $text-faint;
+    font-size: 14px;
+}
+
+// ─── Info rows ────────────────────────────────────────────────────────────────
+
+.info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+
+    &__icon {
+        font-size: 20px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    &__label {
+        margin: 0;
+        font-size: 12px;
+        color: $text-faint;
+    }
+
+    &__value {
+        margin: 2px 0 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: $text-mid;
+    }
+}
+
+// ─── Status badge ─────────────────────────────────────────────────────────────
+
+.status-badge {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 12px;
+    border-radius: $radius-sm;
+    padding: 12px;
+
+    &__icon {
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    &__label {
+        margin: 0;
+        font-size: 12px;
+        color: $text-faint;
+    }
+
+    &__value {
+        margin: 2px 0 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    // Variants
+    &.status--low {
+        background: rgba($green, 0.08);
+        .status-badge__value { color: darken($green, 10%); }
+    }
+
+    &.status--medium {
+        background: rgba($amber, 0.10);
+        .status-badge__value { color: darken($amber, 15%); }
+    }
+
+    &.status--high {
+        background: rgba($orange, 0.10);
+        .status-badge__value { color: darken($orange, 10%); }
+    }
+
+    &.status--full {
+        background: rgba($red, 0.08);
+        .status-badge__value { color: darken($red, 10%); }
+    }
+}
+
+// ─── Stat cards ───────────────────────────────────────────────────────────────
+
+.dtd-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 180px;
+    border-radius: $radius-card;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    &__icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+        color: #fff;
+    }
+
+    &__label {
+        margin: 0;
+        font-size: 13px;
+        color: $text-muted;
+        font-weight: 500;
+    }
+
+    &__value {
+        margin: 2px 0 0;
+        font-size: 26px;
+        font-weight: 700;
+        color: $text-dark;
+        line-height: 1.1;
+    }
+
+    &__sub {
+        margin: 2px 0 0;
+        font-size: 12px;
+        color: $text-faint;
+    }
+
+    // Accent variants
+    &--blue {
+        background: rgba($blue, 0.08);
+        .stat-card__icon { background: $blue; }
+    }
+
+    &--amber {
+        background: rgba($amber, 0.08);
+        .stat-card__icon { background: $amber; }
+    }
+
+    &--green {
+        background: rgba($green, 0.08);
+        .stat-card__icon { background: $green; }
+    }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+    .dtd-body {
+        flex-direction: column;
+    }
+
+    .dtd-card--chart,
+    .dtd-card--info {
+        flex: unset;
+        width: 100%;
+    }
+
+    .dtd-stats {
+        flex-direction: column;
+    }
+
+    .stat-card {
+        min-width: unset;
+    }
+}

@@ -92,6 +92,23 @@ $white: #ffffff;
                 cursor: pointer;
                 font-size: 14px;
                 color: #333;
+                .dropdown-icon{
+                    margin-right: 8px;
+                    font-size: 1.2rem;
+                }
+
+                .icon1{
+                    color: #03cd0a;
+                }
+                .icon2{
+                    color: #2e4ce1;
+                }
+                .icon3{
+                    color: #65664d;
+                }
+                .icon4{
+                    color: #ef5350;
+                }
 
                 &:hover {
                     background-color: #f5f5f5;

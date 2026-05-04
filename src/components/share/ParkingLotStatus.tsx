@@ -17,6 +17,8 @@ import {
     logout
 } from "../../services/apiServices";
 import { doLogout } from "../../redux/slices/userSlice";
+import { FaHome, FaRegUser, FaCog } from "react-icons/fa";
+import { FiLogOut } from "react-icons/fi";
 
 type SlotAnimation = "car-in" | "car-out" | "";
 
@@ -271,14 +273,16 @@ const ParkingLotStatus = () => {
                                 onClick={() => { setShowMenu(false); navigate("/"); }}
                                 className="dropdown-item"
                             >
-                                🏠 Trang chủ
+                                <FaHome className="dropdown-icon icon1" />
+                                Trang chủ
                             </button>
 
                             <button
                                 onClick={() => { setShowMenu(false); navigate("/user"); }}
                                 className="dropdown-item"
                             >
-                                ⚙️ "Trang cá nhân"
+                                <FaRegUser className="dropdown-icon icon2" />
+                                Trang cá nhân
                             </button>
 
                             {isAdmin && (
@@ -286,7 +290,8 @@ const ParkingLotStatus = () => {
                                     onClick={() => { setShowMenu(false); navigate("/admin"); }}
                                     className="dropdown-item"
                                 >
-                                    🛠️ Quản trị hệ thống
+                                    <FaCog className="dropdown-icon icon3" />
+                                    Quản trị hệ thống
                                 </button>
                             )}
 
@@ -294,7 +299,8 @@ const ParkingLotStatus = () => {
                                 onClick={handleLogout}
                                 className="dropdown-item"
                             >
-                                🚪 Đăng xuất
+                                <FiLogOut className="dropdown-icon icon4" />
+                                Đăng xuất
                             </button>
                         </div>
                     )}

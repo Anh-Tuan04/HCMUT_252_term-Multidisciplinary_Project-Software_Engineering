@@ -84,3 +84,9 @@ export const getMyParkingSessions = (date: string, page: number, pageSize: numbe
   const URL_BACKEND = '/api/v1/parking-sessions/my-sessions';
   return axios.get(URL_BACKEND, { params: { date, page, pageSize } });
 }
+
+// ========== Dashboard API ==========
+export const getDashBoard = (date: string, lotId: number) => {
+  const URL_BACKEND = '/api/v1/dashboard/parking-flow';
+  return axios.get(URL_BACKEND, { params: { date, lotId } });
+}

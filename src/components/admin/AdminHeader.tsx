@@ -5,18 +5,17 @@ import { doLogout } from '../../redux/slices/userSlice';
 import { logout } from "../../services/apiServices";
 import { toast } from 'react-toastify';
 import { BsJustify, BsList, BsPersonCircle, BsKey, BsBoxArrowRight } from "react-icons/bs";
-import { FaCog } from "react-icons/fa";
+import { FaRegUser} from "react-icons/fa";
 
-type UserHeaderProps = {
+type AdminHeaderProps = {
   onToggleCollapse: () => void;
   onToggleMobile?: () => void;
 };
 
-const UserHeader = ({ onToggleCollapse, onToggleMobile }: UserHeaderProps) => {
+const AdminHeader = ({ onToggleCollapse, onToggleMobile }: AdminHeaderProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { account } = useAppSelector((state) => state.user);
-  const isAdmin = account?.role === 'ADMIN';
 
   const [isMobile, setIsMobile] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -59,8 +58,8 @@ const UserHeader = ({ onToggleCollapse, onToggleMobile }: UserHeaderProps) => {
   };
 
   return (
-    <header className="user-header">
-      <div className="user-header__left">
+    <header className="admin-header">
+      <div className="admin-header__left">
         {!isMobile && (
           <button className="btn-toggle" onClick={onToggleCollapse} aria-label="Toggle sidebar">
             <BsJustify style={{ justifyContent: 'center', alignItems: 'center', fontSize: '1.5rem' }} />
@@ -73,37 +72,33 @@ const UserHeader = ({ onToggleCollapse, onToggleMobile }: UserHeaderProps) => {
           </button>
         )}
 
-        <span className="header-title">Trang quản lý của User</span>
+        <span className="header-title">Trang quản lý của Admin</span>
       </div>
 
-      <div className="user-header__right" ref={dropdownRef}>
+      <div className="admin-header__right" ref={dropdownRef}>
         {/* Khu vực Avatar */}
         <div
-          className="user-profile"
+          className="admin-profile"
           onClick={() => setShowDropdown(!showDropdown)}
         >
           {/* Bạn có thể thay BsPersonCircle bằng thẻ <img> nếu có link avatar từ API */}
           <BsPersonCircle className="avatar-icon" size={32} />
-          <span className="user-user">Xin chào, {account?.first_name || 'User'}</span>
+          <span className="admin-user">Xin chào, {account?.first_name || 'User'}</span>
         </div>
 
         {/* Dropdown Menu */}
         {showDropdown && (
-          <div className="user-dropdown">
+          <div className="admin-dropdown">
             <div className="dropdown-item" onClick={handleChangePassword}>
               <BsKey className="dropdown-icon" />
               Đổi mật khẩu
             </div>
             <div className="dropdown-divider"></div>
-            {isAdmin &&
-              <>
-                <div className="dropdown-item" onClick={() => navigate('/admin')}>
-                  <FaCog className="dropdown-icon" />
-                  Trang quản lý
+            <div className="dropdown-item" onClick={() => navigate('/user')}>
+                  <FaRegUser className="dropdown-icon" />
+                  Trang cá nhân
                 </div>
                 <div className="dropdown-divider"></div>
-              </>
-            }
             <div className="dropdown-item text-danger" onClick={handleLogout}>
               <BsBoxArrowRight className="dropdown-icon" />
               Đăng xuất
@@ -115,4 +110,4 @@ const UserHeader = ({ onToggleCollapse, onToggleMobile }: UserHeaderProps) => {
   );
 };
 
-export default UserHeader;
+export default AdminHeader;
