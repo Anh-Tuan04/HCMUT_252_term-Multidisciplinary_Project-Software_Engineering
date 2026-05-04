@@ -1,5 +1,7 @@
 // ─── Variables ────────────────────────────────────────────────────────────────
 
+@use "sass:color";
+
 $bg-page:    #f8fafc;
 $bg-card:    #ffffff;
 $border:     #e2e8f0;
@@ -222,22 +224,22 @@ $radius-sm:   10px;
     // Variants
     &.status--low {
         background: rgba($green, 0.08);
-        .status-badge__value { color: darken($green, 10%); }
+        .status-badge__value { color: color.adjust($green, $lightness: -10%); }
     }
 
     &.status--medium {
         background: rgba($amber, 0.10);
-        .status-badge__value { color: darken($amber, 15%); }
+        .status-badge__value { color: color.adjust($amber, $lightness: -15%); }
     }
 
     &.status--high {
         background: rgba($orange, 0.10);
-        .status-badge__value { color: darken($orange, 10%); }
+        .status-badge__value { color: color.adjust($orange, $lightness: -10%); }
     }
 
     &.status--full {
         background: rgba($red, 0.08);
-        .status-badge__value { color: darken($red, 10%); }
+        .status-badge__value { color: color.adjust($red, $lightness: -10%); }
     }
 }
 
