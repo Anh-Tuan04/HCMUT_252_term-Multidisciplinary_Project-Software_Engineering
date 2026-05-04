@@ -12,15 +12,17 @@ import ParkingLotStatus from './components/share/ParkingLotStatus.js';
 import ChangePassword from './pages/changePassword.js';
 import UserLayout from './components/user/UserLayout.js';
 import MyProfile from './components/user/MyProfile/MyProfile.js';
-import ManageParkingSession from './components/user/MyParkingSession/ManageParkingSession.js';
+import MyParkingSession from './components/user/MyParkingSession/MyParkingSession.js';
 import Dashboard from './components/admin/DashBoard/DashBoard.js';
+import ManageParkingSession from './components/admin/ParkingSession/ManageParkingSession.js';
 
 const App = () => {
   return (
       <Routes>
         <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
           <Route index element={<Dashboard />} />
-          {/* <Route path="products" element={<ManageProduct />} />
+          <Route path="parking_sessions" element={<ManageParkingSession />} />
+            {/*
           <Route path="orders" element={<ManageOrder />} />
           <Route path="users" element={<ManagerUser />} /> */}
         </Route>
@@ -28,7 +30,7 @@ const App = () => {
 
         <Route path="/user" element={<PrivateRoute><UserLayout /></PrivateRoute>}>
           <Route index element={<MyProfile />} />
-          <Route path="parking_sessions" element={<ManageParkingSession />} />
+          <Route path="parking_sessions" element={<MyParkingSession />} />
         </Route>
 
         <Route path="/parking-status" element={<PrivateRoute><ParkingLotStatus /></PrivateRoute>} />

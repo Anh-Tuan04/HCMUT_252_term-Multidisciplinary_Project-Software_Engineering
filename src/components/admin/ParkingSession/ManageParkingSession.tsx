@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import TableParkingSessionPaginate from "./TableParkingSessionPaginate";
 import ModelViewParkingSession from "./ModelViewParkingSession"
 
-import { getMyParkingSessions } from "../../../services/apiServices";
+import { getAllParkingSessions } from "../../../services/apiServices";
 import type { ParkingSession } from "../../../interfaces";
 
 import "./ManageParkingSession.scss";
@@ -36,7 +36,7 @@ const ManageParkingSession = () => {
     page = currentPage
   ) => {
     try {
-      const res = await getMyParkingSessions(selectedDate, page, PAGE_SIZE);
+      const res = await getAllParkingSessions(selectedDate, page, PAGE_SIZE);
 
       if (res?.data?.success) {
         const payload = res.data.data;
@@ -63,7 +63,7 @@ const ManageParkingSession = () => {
 
   const loadInitialParkingSessions = async () => {
     try {
-      const res = await getMyParkingSessions(date, 1, PAGE_SIZE);
+      const res = await getAllParkingSessions(date, 1, PAGE_SIZE);
 
       if (ignore) return;
 
