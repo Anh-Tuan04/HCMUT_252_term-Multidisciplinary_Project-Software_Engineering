@@ -18,23 +18,24 @@ const ModelCreateUser = (props: ModelCreateUserProps) => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [first_name, setFirstName] = useState("");
+  const [last_name, setLastName] = useState("");
   const [role, setRole] = useState("USER");
 
   const handleClose = () => setShow(false);
 
   const handleSubmitCreateUser = async () => {
-    if (!email || !password || !name) {
+    if (!email || !password || !first_name || !last_name) {
       toast.error("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-
-    const res = await createUserForAdmin(email, name, password, role);
+    const res = await createUserForAdmin(email, password, first_name, last_name, role);
     if (res && res?.data?.success) {
       toast.success("Tạo người dùng thành công!");
       setEmail("");
       setPassword("");
-      setName("");
+      setFirstName("");
+      setLastName("");
       setRole("USER");
       props.setCurrentPage(1);
       await props.fetchListUsersWithPaginate(1);
@@ -74,13 +75,24 @@ const ModelCreateUser = (props: ModelCreateUserProps) => {
           </div>
 
           <div className="form-group">
-            <label>Họ và tên người dùng</label>
+            <label>First Name</label>
             <input
               type="text"
               className="form-control"
-              value={name}
-              placeholder='Nhập họ tên người dùng'
-              onChange={(e) => setName(e.target.value)}
+              value={first_name}
+              placeholder='Nhập First Name'
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Last Name</label>
+            <input
+              type="text"
+              className="form-control"
+              value={last_name}
+              placeholder='Nhập Last Name'
+              onChange={(e) => setLastName(e.target.value)}
             />
           </div>
 

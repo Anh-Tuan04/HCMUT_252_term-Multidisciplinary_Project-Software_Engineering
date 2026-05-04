@@ -55,6 +55,23 @@ export const updateMyProfile = (first_name: string, last_name: string) => {
   return axios.patch(URL_BACKEND, data);
 }
 
+export const getUserWithPaginate = (page: number, pageSize: number, search: string) => {
+  const URL_BACKEND = '/api/v1/users';
+  return axios.get(URL_BACKEND, { params: { page, pageSize, search } });
+}
+
+export const createUserForAdmin = (email: string, password: string, first_name: string, last_name: string, role: string) => {
+  const URL_BACKEND = '/api/v1/users/admin/create';
+  const data = { email, password, first_name, last_name, role };
+  return axios.post(URL_BACKEND, data);
+}
+
+export const changeRoleUserForAdmin = (id: number, newRole: string) => {
+  const URL_BACKEND = `/api/v1/users/change-role/${id}`;
+  const data = { new_role: newRole };
+  return axios.patch(URL_BACKEND, data);
+}
+
 // ========== Parking Lot API ==========
 export const getParkingLots = () => {
   const URL_BACKEND = '/api/v1/parking-lots';

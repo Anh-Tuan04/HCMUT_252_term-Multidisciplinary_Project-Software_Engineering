@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import './CreateView.scss';
-import type { UserPaginate } from '../../../interfaces';
+import type { UserProfile } from '../../../interfaces';
 type ModelViewUserProps = {
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
-  dataUpdate: UserPaginate;
+  dataUpdate: UserProfile;
 };
 const ModelViewUser = (props: ModelViewUserProps) => {
   const { show, setShow, dataUpdate } = props;
@@ -14,10 +14,11 @@ const ModelViewUser = (props: ModelViewUserProps) => {
     setShow(false);
   };
 
-  const { email, name, role } = useMemo(
+  const { email, first_name, last_name, role } = useMemo(
     () => ({
       email: dataUpdate?.email || "",
-      name: dataUpdate?.name || "",
+      first_name: dataUpdate?.first_name || "",
+      last_name: dataUpdate?.last_name || "",
       role: dataUpdate?.role || "USER",
     }),
     [dataUpdate]
@@ -38,10 +39,13 @@ const ModelViewUser = (props: ModelViewUserProps) => {
 
   <div className="row-group">
     <div className="form-group">
-      <label>Name</label>
-      <input type="text" className="form-control" value={name} disabled />
+      <label>First Name</label>
+      <input type="text" className="form-control" value={first_name} disabled />
     </div>
-
+    <div className="form-group">
+      <label>Last Name</label>
+      <input type="text" className="form-control" value={last_name} disabled />
+    </div>
     <div className="form-group">
       <label>Role</label>
       <select className="form-select" value={role} disabled>

@@ -1,18 +1,21 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import ReactPaginate from "react-paginate";
+import ReactPaginateMod from "react-paginate";
 import { BsFillPencilFill, BsFillCameraFill, BsArrowRightCircleFill } from "react-icons/bs";
 
-import type { UserPaginate } from '../../../interfaces';
+import type { UserProfile } from '../../../interfaces';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ReactPaginate = (ReactPaginateMod as unknown as { default: React.ComponentType<any> }).default || ReactPaginateMod;
 
 type TableUserPaginateProps = {
-  listUsers: UserPaginate[];
+  listUsers: UserProfile[];
   pageCount: number;
   currentPage: number;
   limit: number;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   fetchListUsersWithPaginate: (page: number, keyword?: string) => Promise<void> | void;
-  handleClickBtnView: (user: UserPaginate) => void;
-  handleClickBtnUpdate: (user: UserPaginate) => void;
+  handleClickBtnView: (user: UserProfile) => void;
+  handleClickBtnUpdate: (user: UserProfile) => void;
   resetSearchTerm: () => void;
 };
 
@@ -21,13 +24,13 @@ const TableUserPaginate = (props: TableUserPaginateProps) => {
 
   const handlePageClick = (event: { selected: number }) => {
     const newPage = +event.selected + 1;
-    
-    const newSearchTerm = ""; 
-    
+
+    const newSearchTerm = "";
+
     props.setCurrentPage(newPage);
     props.fetchListUsersWithPaginate(newPage, newSearchTerm);
-    
-    props.resetSearchTerm(); 
+
+    props.resetSearchTerm();
   };
 
   return (
@@ -36,7 +39,8 @@ const TableUserPaginate = (props: TableUserPaginateProps) => {
         <thead>
           <tr>
             <th scope="col">Id</th>
-            <th scope="col">Name</th>
+            <th scope="col">First Name</th>
+            <th scope="col">Last Name</th>
             <th scope="col">Email</th>
             <th scope="col">Role</th>
             <th scope="col">Action</th>
@@ -47,7 +51,8 @@ const TableUserPaginate = (props: TableUserPaginateProps) => {
             listUsers.map((item, index) => (
               <tr key={index}>
                 <td>{(props.currentPage - 1) * props.limit + index + 1}</td>
-                <td>{item.name}</td>
+                <td>{item.first_name}</td>
+                <td>{item.last_name}</td>
                 <td>{item.email}</td>
                 <td>{item.role}</td>
                 <td>
@@ -68,32 +73,34 @@ const TableUserPaginate = (props: TableUserPaginateProps) => {
             ))
           ) : (
             <tr>
-              <td colSpan={5} className="text-center">Not found</td>
+              <td colSpan={6} className="text-center">Not found</td>
             </tr>
           )}
         </tbody>
       </table>
 
-      <ReactPaginate
-        nextLabel={<BsArrowRightCircleFill style={{ fontSize: '1.5rem' }} />}
-        previousLabel={<BsArrowRightCircleFill style={{ fontSize: '1.5rem', transform: 'scaleX(-1)' }} />}
-        onPageChange={handlePageClick}
-        pageRangeDisplayed={3}
-        marginPagesDisplayed={2}
-        pageCount={pageCount}
-        pageClassName="page-item"
-        pageLinkClassName="page-link"
-        previousClassName="page-item"
-        previousLinkClassName="page-link"
-        nextClassName="page-item"
-        nextLinkClassName="page-link"
-        breakClassName="page-item"
-        breakLinkClassName="page-link"
-        containerClassName="pagination"
-        activeClassName="active"
-        renderOnZeroPageCount={null}
-        forcePage={props.currentPage - 1}
-      />
+      {pageCount > 0 && (
+        <ReactPaginate
+          nextLabel={<BsArrowRightCircleFill style={{ fontSize: '1.5rem' }} />}
+          previousLabel={<BsArrowRightCircleFill style={{ fontSize: '1.5rem', transform: 'scaleX(-1)' }} />}
+          onPageChange={handlePageClick}
+          pageRangeDisplayed={3}
+          marginPagesDisplayed={2}
+          pageCount={pageCount}
+          pageClassName="page-item"
+          pageLinkClassName="page-link"
+          previousClassName="page-item"
+          previousLinkClassName="page-link"
+          nextClassName="page-item"
+          nextLinkClassName="page-link"
+          breakClassName="page-item"
+          breakLinkClassName="page-link"
+          containerClassName="pagination"
+          activeClassName="active"
+          renderOnZeroPageCount={null}
+          forcePage={props.currentPage - 1}
+        />
+      )}
     </div>
   );
 };

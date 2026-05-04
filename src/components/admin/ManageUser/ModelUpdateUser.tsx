@@ -5,11 +5,11 @@ import { toast } from "react-toastify";
 import { changeRoleUserForAdmin } from '../../../services/apiServices';
 import _ from 'lodash';
 import './UpdateDelete.scss';
-import type { UserPaginate } from '../../../interfaces';
+import type { UserProfile } from '../../../interfaces';
 type ModelUpdateUserProps = {
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
-  dataUpdate: UserPaginate;
+  dataUpdate: UserProfile;
   resetUpdateData: () => void;
   currentPage: number;
   fetchListUsersWithPaginate: (page: number, keyword?: string) => Promise<void> | void;
@@ -31,12 +31,12 @@ useEffect(() => {
 }, [dataUpdate]);
 
 const handleSubmiUpdateUser = async() => {
-  const res = await changeRoleUserForAdmin(dataUpdate.userID,role);
+  const res = await changeRoleUserForAdmin(dataUpdate.id,role);
   if(res && res?.data?.success) {
     toast.success("Update user successfully");
     handleClose();
     await props.fetchListUsersWithPaginate(props.currentPage);
-  } 
+  }
   if(res && !res?.data?.success) {
     toast.error(res?.data?.message || "Update user failed!");
   }

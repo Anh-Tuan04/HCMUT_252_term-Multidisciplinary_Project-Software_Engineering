@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaSearch } from "react-icons/fa";
-import { IoMdClose } from "react-icons/io"; 
+import { IoMdClose } from "react-icons/io";
 import { toast } from 'react-toastify';
 import TableUserPaginate from "./TableUserPaginate";
 import ModelCreateUser from "./ModelCreateUser";
@@ -8,13 +8,13 @@ import ModelUpdateUser from "./ModelUpdateUser";
 import ModelViewUser from "./ModelViewUser";
 import { getUserWithPaginate } from '../../../services/apiServices';
 import './ManageUser.scss';
-import type { UserPaginate } from '../../../interfaces';
+import type { UserProfile } from '../../../interfaces';
 
 const ManagerUser = () => {
   const LIMIT = 5;
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [listUsers, setListUsers] = useState<UserPaginate[]>([]);
+  const [listUsers, setListUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [search, setSearch] = useState(false);
 
@@ -22,7 +22,7 @@ const ManagerUser = () => {
   const [showModelUpdateUser, setShowModelUpdateUser] = useState(false);
   const [showModelViewUser, setShowModelViewUser] = useState(false);
 
-  const [dataUpdate, setDataUpdate] = useState<UserPaginate>({} as UserPaginate);
+  const [dataUpdate, setDataUpdate] = useState<UserProfile>({} as UserProfile);
 
   const fetchAndNotify = async (page: number, keyword = "") => {
     try {
@@ -58,7 +58,7 @@ const ManagerUser = () => {
   };
 
   const handleClearSearch = async () => {
-    setCurrentPage(1); 
+    setCurrentPage(1);
     setSearchTerm("");
     setSearch(false);
     await fetchAndNotify(1, "");
@@ -81,19 +81,19 @@ const ManagerUser = () => {
     }
   };
 
-  const handleClickBtnUpdate = (user: UserPaginate) => {
+  const handleClickBtnUpdate = (user: UserProfile) => {
     setShowModelUpdateUser(true);
     setDataUpdate(user);
   };
 
-  const handleClickBtnView = (user: UserPaginate) => {
+  const handleClickBtnView = (user: UserProfile) => {
     setShowModelViewUser(true);
     setDataUpdate(user);
   };
 
 
   const resetUpdateData = () => {
-    setDataUpdate({} as UserPaginate);
+    setDataUpdate({} as UserProfile);
     setShowModelUpdateUser(false);
   };
 

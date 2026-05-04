@@ -15,18 +15,18 @@ import MyProfile from './components/user/MyProfile/MyProfile.js';
 import MyParkingSession from './components/user/MyParkingSession/MyParkingSession.js';
 import Dashboard from './components/admin/DashBoard/DashBoard.js';
 import ManageParkingSession from './components/admin/ParkingSession/ManageParkingSession.js';
+import ManagerUser from './components/admin/ManageUser/ManagerUser.js';
 
 const App = () => {
   return (
       <Routes>
+        <Route path="/" element={<WelcomePage />} />
+
         <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="parking_sessions" element={<ManageParkingSession />} />
-            {/*
-          <Route path="orders" element={<ManageOrder />} />
-          <Route path="users" element={<ManagerUser />} /> */}
+          <Route path="users" element={<ManagerUser />} />
         </Route>
-        <Route path="/" element={<WelcomePage />} />
 
         <Route path="/user" element={<PrivateRoute><UserLayout /></PrivateRoute>}>
           <Route index element={<MyProfile />} />
