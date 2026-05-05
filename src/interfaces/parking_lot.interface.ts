@@ -28,3 +28,14 @@ export interface ParkingLotDetail{
   slots: ParkingSlot[];
   stats: ParkingStats;
 };
+
+export type GateType = "ENTRY" | "EXIT";
+
+export interface Gate {
+  id: number;
+  name: string;
+  type: GateType;
+  mac_address: string;
+  lot_id: number;
+  is_active: boolean;
+}

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
 import { FaPlus, FaSyncAlt } from "react-icons/fa";
 import { BsFillPencilFill } from "react-icons/bs";
 import { FaPenRuler } from "react-icons/fa6";
@@ -8,13 +10,17 @@ import { toast } from "react-toastify";
 import {
   adminUpdateParkingSlot,
   changeDeviceMacForSlot,
+  changeDeviceMacForGate,
+  createGateForAdmin,
   createLotForAdmin,
   createSlotForAdmin,
   getAllLot,
+  getGatesByLot,
   getLotDetail,
 } from "../../../services/apiServices";
 
 import type {
+  Gate,
   Lot,
   ParkingLotDetail,
   ParkingSlot,
@@ -23,6 +29,7 @@ import type {
 
 import CreateLotModal from "./CreateLotModal";
 import CreateSlotModal from "./CreateSlotModal";
+import CreateGateModal from "./CreateGateModal";
 import UpdateSlotStatusModal from "./UpdateSlotStatusModal";
 import UpdateSlotDeviceModal from "./UpdateSlotDeviceModal";
 
@@ -47,9 +54,20 @@ type SlotForm = {
   port_number: string;
 };
 
+type GateForm = {
+  name: string;
+  type: "ENTRY" | "EXIT";
+  mac_address: string;
+  is_active: boolean;
+};
+
 type DeviceForm = {
   device_mac: string;
   port_number: string;
+};
+
+type GateDeviceForm = {
+  mac_address: string;
 };
 
 const SLOT_STATUS_OPTIONS: SlotStatusOption[] = [
@@ -76,23 +94,32 @@ const ManageLot = () => {
   const [lots, setLots] = useState<Lot[]>([]);
   const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
   const [lotDetail, setLotDetail] = useState<ParkingLotDetail | null>(null);
+  const [gates, setGates] = useState<Gate[]>([]);
 
   const [loadingLots, setLoadingLots] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [loadingGates, setLoadingGates] = useState(false);
   const [creatingLot, setCreatingLot] = useState(false);
   const [creatingSlot, setCreatingSlot] = useState(false);
+  const [creatingGate, setCreatingGate] = useState(false);
   const [updatingStatusSlotId, setUpdatingStatusSlotId] =
     useState<number | null>(null);
   const [updatingDeviceSlotId, setUpdatingDeviceSlotId] =
     useState<number | null>(null);
+  const [updatingDeviceGateId, setUpdatingDeviceGateId] =
+    useState<number | null>(null);
 
   const [showCreateLotModal, setShowCreateLotModal] = useState(false);
   const [showCreateSlotModal, setShowCreateSlotModal] = useState(false);
+  const [showCreateGateModal, setShowCreateGateModal] = useState(false);
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
   const [showUpdateDeviceModal, setShowUpdateDeviceModal] = useState(false);
+  const [showUpdateGateDeviceModal, setShowUpdateGateDeviceModal] =
+    useState(false);
 
   const [statusSlot, setStatusSlot] = useState<ParkingSlot | null>(null);
   const [deviceSlot, setDeviceSlot] = useState<ParkingSlot | null>(null);
+  const [deviceGate, setDeviceGate] = useState<Gate | null>(null);
 
   const [lotForm, setLotForm] = useState<LotForm>({
     name: "",
@@ -104,6 +131,12 @@ const ManageLot = () => {
     device_mac: "",
     port_number: "",
   });
+  const [gateForm, setGateForm] = useState<GateForm>({
+    name: "",
+    type: "ENTRY",
+    mac_address: "",
+    is_active: true,
+  });
 
   const [statusForm, setStatusForm] =
     useState<SlotStatusOption>("AVAILABLE");
@@ -111,6 +144,9 @@ const ManageLot = () => {
   const [deviceForm, setDeviceForm] = useState<DeviceForm>({
     device_mac: "",
     port_number: "",
+  });
+  const [gateDeviceForm, setGateDeviceForm] = useState<GateDeviceForm>({
+    mac_address: "",
   });
 
   const selectedLot = useMemo(
@@ -212,6 +248,28 @@ const ManageLot = () => {
     }
   };
 
+  const loadGatesByLot = async (lotId: number) => {
+    try {
+      setLoadingGates(true);
+
+      const res = await getGatesByLot(lotId);
+      const payload = res?.data as ApiResponse<Gate[]> | undefined;
+
+      if (!payload?.success) {
+        toast.error(payload?.message || "Khong lay duoc danh sach cong");
+        setGates([]);
+        return;
+      }
+
+      setGates(Array.isArray(payload.data) ? payload.data : []);
+    } catch {
+      toast.error("Khong lay duoc danh sach cong");
+      setGates([]);
+    } finally {
+      setLoadingGates(false);
+    }
+  };
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       loadLots();
@@ -225,10 +283,12 @@ const ManageLot = () => {
     const timer = window.setTimeout(() => {
       if (selectedLotId === null) {
         setLotDetail(null);
+        setGates([]);
         return;
       }
 
       loadLotDetail(selectedLotId);
+      loadGatesByLot(selectedLotId);
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -246,6 +306,15 @@ const ManageLot = () => {
       name: "",
       device_mac: "",
       port_number: "",
+    });
+  };
+
+  const resetGateForm = () => {
+    setGateForm({
+      name: "",
+      type: "ENTRY",
+      mac_address: "",
+      is_active: true,
     });
   };
 
@@ -329,6 +398,46 @@ const ManageLot = () => {
     }
   };
 
+  const handleCreateGate = async () => {
+    if (selectedLotId === null) {
+      toast.error("Vui long chon bai do truoc");
+      return;
+    }
+
+    const name = gateForm.name.trim();
+    const macAddress = gateForm.mac_address.trim();
+
+    if (!name || !macAddress) {
+      toast.error("Vui long nhap day du thong tin gate");
+      return;
+    }
+
+    try {
+      setCreatingGate(true);
+
+      const res = await createGateForAdmin(
+        selectedLotId,
+        name,
+        gateForm.type,
+        macAddress
+      );
+
+      if (!res?.data?.success) {
+        toast.error(res?.data?.message || "Them gate that bai");
+        return;
+      }
+
+      toast.success(res?.data?.message || "Them gate thanh cong");
+      setShowCreateGateModal(false);
+      resetGateForm();
+      await loadGatesByLot(selectedLotId);
+    } catch {
+      toast.error("Them gate that bai");
+    } finally {
+      setCreatingGate(false);
+    }
+  };
+
   const openUpdateStatusModal = (slot: ParkingSlot) => {
     setStatusSlot(slot);
     setStatusForm(slot.status as SlotStatusOption);
@@ -357,6 +466,18 @@ const ManageLot = () => {
       device_mac: "",
       port_number: "",
     });
+  };
+
+  const openUpdateGateDeviceModal = (gate: Gate) => {
+    setDeviceGate(gate);
+    setGateDeviceForm({ mac_address: gate.mac_address || "" });
+    setShowUpdateGateDeviceModal(true);
+  };
+
+  const closeUpdateGateDeviceModal = () => {
+    setShowUpdateGateDeviceModal(false);
+    setDeviceGate(null);
+    setGateDeviceForm({ mac_address: "" });
   };
 
   const handleUpdateStatus = async () => {
@@ -444,6 +565,43 @@ const ManageLot = () => {
     }
   };
 
+  const handleUpdateGateDevice = async () => {
+    if (!deviceGate) return;
+
+    const nextMac = gateDeviceForm.mac_address.trim();
+    const currentMac = (deviceGate.mac_address || "").trim();
+
+    if (!nextMac) {
+      toast.error("MAC address khong duoc de trong");
+      return;
+    }
+
+    if (nextMac === currentMac) {
+      toast.info("Khong co thay doi thiet bi cong");
+      return;
+    }
+
+    try {
+      setUpdatingDeviceGateId(deviceGate.id);
+      const res = await changeDeviceMacForGate(deviceGate.id, nextMac);
+
+      if (!res?.data?.success) {
+        toast.error(res?.data?.message || "Cap nhat MAC cong that bai");
+        return;
+      }
+
+      toast.success(res?.data?.message || "Cap nhat MAC cong thanh cong");
+      if (selectedLotId !== null) {
+        await loadGatesByLot(selectedLotId);
+      }
+      closeUpdateGateDeviceModal();
+    } catch {
+      toast.error("Cap nhat MAC cong that bai");
+    } finally {
+      setUpdatingDeviceGateId(null);
+    }
+  };
+
   return (
     <div className="manage-lot-container">
       <div className="header">
@@ -455,11 +613,12 @@ const ManageLot = () => {
           <button
             className="btn-refresh"
             onClick={() => {
-              if (selectedLotId !== null) {
-                loadLotDetail(selectedLotId);
-              } else {
-                loadLots();
-              }
+            if (selectedLotId !== null) {
+              loadLotDetail(selectedLotId);
+              loadGatesByLot(selectedLotId);
+            } else {
+              loadLots();
+            }
             }}
           >
             <FaSyncAlt /> Làm mới
@@ -478,6 +637,14 @@ const ManageLot = () => {
             disabled={selectedLotId === null}
           >
             <FaPlus /> Thêm Slot
+          </button>
+
+          <button
+            className="btn-create btn-create--secondary"
+            onClick={() => setShowCreateGateModal(true)}
+            disabled={selectedLotId === null}
+          >
+            <FaPlus /> Thêm Gate
           </button>
         </div>
       </div>
@@ -611,6 +778,77 @@ const ManageLot = () => {
         </div>
       </div>
 
+      <div className="detail-card">
+        <div className="detail-header">
+          <div>
+            <h3>Bảng quản lý Gate</h3>
+            <p>Theo dõi cổng vào/ra và cập nhật thiết bị</p>
+          </div>
+          <span className="total-slot">Tổng cổng: {gates.length}</span>
+        </div>
+
+        <div className="slot-table">
+          <table className="table table-hover table-bordered">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên cổng</th>
+                <th>Loại cổng</th>
+                <th>MAC hiện tại</th>
+                <th>Trạng thái</th>
+                <th>Sửa thiết bị</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadingGates && (
+                <tr>
+                  <td colSpan={6} className="text-center">
+                    Đang tải danh sách cổng...
+                  </td>
+                </tr>
+              )}
+
+              {!loadingGates &&
+                gates.map((gate) => (
+                  <tr key={gate.id}>
+                    <td>{gate.id}</td>
+                    <td>{gate.name}</td>
+                    <td>{gate.type === "ENTRY" ? "Vào" : "Ra"}</td>
+                    <td>{gate.mac_address || "-"}</td>
+                    <td>
+                      <span
+                        className={
+                          gate.is_active
+                            ? "status-pill status-pill--available"
+                            : "status-pill status-pill--maintain"
+                        }
+                      >
+                        {gate.is_active ? "Hoạt động" : "Tạm dừng"}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-warning"
+                        onClick={() => openUpdateGateDeviceModal(gate)}
+                      >
+                        <BsFillPencilFill style={{ fontSize: "1rem" }} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+              {!loadingGates && gates.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="text-center">
+                    Chưa có cổng nào trong lot này
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <CreateLotModal
         show={showCreateLotModal}
         creatingLot={creatingLot}
@@ -636,6 +874,19 @@ const ManageLot = () => {
         onSubmit={handleCreateSlot}
       />
 
+      <CreateGateModal
+        show={showCreateGateModal}
+        creatingGate={creatingGate}
+        selectedLot={selectedLot}
+        gateForm={gateForm}
+        setGateForm={setGateForm}
+        onClose={() => {
+          setShowCreateGateModal(false);
+          resetGateForm();
+        }}
+        onSubmit={handleCreateGate}
+      />
+
       <UpdateSlotStatusModal
         show={showUpdateStatusModal}
         statusSlot={statusSlot}
@@ -657,6 +908,56 @@ const ManageLot = () => {
         onClose={closeUpdateDeviceModal}
         onSubmit={handleUpdateDevice}
       />
+
+      <Modal
+        show={showUpdateGateDeviceModal}
+        onHide={closeUpdateGateDeviceModal}
+        backdrop="static"
+        className="manage-lot-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Cập nhật thiết bị cổng</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <div className="form-group">
+            <label>Tên cổng</label>
+            <input
+              type="text"
+              className="form-control"
+              value={deviceGate?.name || ""}
+              disabled
+            />
+          </div>
+
+          <div className="form-group mt-3">
+            <label>MAC address</label>
+            <input
+              type="text"
+              className="form-control"
+              value={gateDeviceForm.mac_address}
+              onChange={(e) =>
+                setGateDeviceForm({
+                  mac_address: e.target.value,
+                })
+              }
+            />
+          </div>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeUpdateGateDeviceModal}>
+            Đóng
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleUpdateGateDevice}
+            disabled={updatingDeviceGateId !== null}
+          >
+            {updatingDeviceGateId !== null ? "Đang lưu..." : "Cập nhật"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

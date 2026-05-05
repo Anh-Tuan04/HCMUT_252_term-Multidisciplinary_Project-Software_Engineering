@@ -79,15 +79,6 @@ export const findUserByEmail = (email: string) => {
 }
 
 // ========== Parking Lot API ==========
-export const getParkingLots = () => {
-  const URL_BACKEND = '/api/v1/parking-lots';
-  return axios.get(URL_BACKEND);
-}
-
-export const getParkingLotDetail = (id: number) => {
-  const URL_BACKEND = `/api/v1/parking-lots/${id}`;
-  return axios.get(URL_BACKEND);
-}
 
 // Alias for ManageLot module
 export const getAllLot = () => {
@@ -125,6 +116,29 @@ export const adminUpdateParkingSlot = async (
 export const changeDeviceMacForSlot = async (id: number, device_mac: string, port_number: number) => {
   const URL_BACKEND = `/api/v1/parking-slots/${id}/device`;
   const data = { device_mac, port_number };
+  return axios.patch(URL_BACKEND, data);
+}
+
+// ========== Gate API ==========
+export const getGatesByLot = (id: number) => {
+  const URL_BACKEND = `/api/v1/parking-lots/${id}/gates`;
+  return axios.get(URL_BACKEND);
+}
+
+export const createGateForAdmin = (
+  lot_id: number,
+  name: string,
+  type: 'ENTRY' | 'EXIT',
+  mac_address: string
+) => {
+  const URL_BACKEND = '/api/v1/gates';
+  const data = { lot_id, name, type, mac_address};
+  return axios.post(URL_BACKEND, data);
+}
+
+export const changeDeviceMacForGate = (id: number, mac_address: string) => {
+  const URL_BACKEND = `/api/v1/gates/${id}`;
+  const data = { mac_address };
   return axios.patch(URL_BACKEND, data);
 }
 

@@ -12,8 +12,8 @@ import type {
 } from "../../interfaces";
 
 import {
-    getParkingLots,
-    getParkingLotDetail,
+    getAllLot,
+    getLotDetail,
     logout
 } from "../../services/apiServices";
 import { doLogout } from "../../redux/slices/userSlice";
@@ -77,7 +77,7 @@ const ParkingLotStatus = () => {
         try {
         setLoadingLots(true);
 
-        const res = await getParkingLots();
+        const res = await getAllLot();
         const json = res.data;
 
         if (json.success) {
@@ -100,7 +100,7 @@ const ParkingLotStatus = () => {
         if (!silent) setLoadingDetail(true);
         setRefreshing(true);
 
-        const res = await getParkingLotDetail(lotId);
+        const res = await getLotDetail(lotId);
         const json = res.data;
 
         if (json.success) {

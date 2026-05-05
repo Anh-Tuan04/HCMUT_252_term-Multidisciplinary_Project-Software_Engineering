@@ -8,7 +8,7 @@ import {
     ResponsiveContainer,
     CartesianGrid,
 } from "recharts";
-import { getParkingLots, getDashBoard } from "../../../services/apiServices";
+import { getAllLot, getDashBoard } from "../../../services/apiServices";
 import type { Lot } from "../../../interfaces";
 import "./Dashboard.scss";
 
@@ -122,7 +122,7 @@ const Dashboard = () => {
         const fetchLots = async () => {
             try {
                 setLoadingLots(true);
-                const res = await getParkingLots();
+                const res = await getAllLot();
                 const json = res.data;
                 if (json.success) {
                     const lotList: Lot[] = json.data || [];
