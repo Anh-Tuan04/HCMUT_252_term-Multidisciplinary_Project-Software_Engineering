@@ -89,10 +89,42 @@ export const getParkingLotDetail = (id: number) => {
   return axios.get(URL_BACKEND);
 }
 
+// Alias for ManageLot module
+export const getAllLot = () => {
+  const URL_BACKEND = '/api/v1/parking-lots';
+  return axios.get(URL_BACKEND);
+}
+
+export const getLotDetail = (id: number) => {
+  const URL_BACKEND = `/api/v1/parking-lots/${id}`;
+  return axios.get(URL_BACKEND);
+}
+
+export const createLotForAdmin = (name: string, location: string) => {
+  const URL_BACKEND = '/api/v1/parking-lots';
+  const data = { name, location };
+  return axios.post(URL_BACKEND, data);
+}
+
+export const createSlotForAdmin = (lot_id: number, name: string, device_mac: string, port_number: number ) => {
+  const URL_BACKEND = '/api/v1/parking-slots';
+  const data = { name, lot_id, device_mac, port_number};
+  return axios.post(URL_BACKEND, data);
+}
+
 // ========== Parking Slot API ==========
-export const adminUpdateParkingSlot = async (id: number, status: string) => {
+export const adminUpdateParkingSlot = async (
+  id: number,
+  status: string,
+) => {
   const URL_BACKEND = `/api/v1/parking-slots/admin/${id}`;
   const data = { status };
+  return axios.patch(URL_BACKEND, data);
+}
+
+export const changeDeviceMacForSlot = async (id: number, device_mac: string, port_number: number) => {
+  const URL_BACKEND = `/api/v1/parking-slots/${id}/device`;
+  const data = { device_mac, port_number };
   return axios.patch(URL_BACKEND, data);
 }
 

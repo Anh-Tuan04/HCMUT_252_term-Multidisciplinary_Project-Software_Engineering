@@ -1,0 +1,308 @@
+.manage-lot-container {
+  padding: 24px;
+  background: #f6f8fb;
+  min-height: 100%;
+  font-family: "Poppins", sans-serif;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+
+    .title {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 700;
+      color: #172033;
+    }
+
+    .sub-title {
+      margin: 6px 0 0;
+      color: #667085;
+      font-size: 14px;
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .btn-refresh,
+  .btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-refresh {
+    color: #0f172a;
+    background: #e2e8f0;
+
+    &:hover {
+      background: #cfd8e3;
+    }
+  }
+
+  .btn-create {
+    color: #fff;
+    background: #1366d9;
+
+    &:hover {
+      background: #0f56b8;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-create--secondary {
+    background: #0f9f6e;
+
+    &:hover {
+      background: #0b855b;
+    }
+  }
+
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .summary-card {
+    border-radius: 14px;
+    padding: 14px 16px;
+    border: 1px solid #edf0f5;
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(16, 24, 40, 0.08);
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: #667085;
+      font-weight: 600;
+    }
+
+    strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 28px;
+      color: #111827;
+      line-height: 1;
+    }
+  }
+
+  .summary-card--lot {
+    border-left: 4px solid #4f46e5;
+  }
+
+  .summary-card--available {
+    border-left: 4px solid #12b76a;
+  }
+
+  .summary-card--occupied {
+    border-left: 4px solid #f79009;
+  }
+
+  .summary-card--maintain {
+    border-left: 4px solid #7a5af8;
+  }
+
+  .lot-panel {
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+
+    label {
+      font-size: 14px;
+      color: #344054;
+      font-weight: 600;
+    }
+
+    select {
+      min-width: 320px;
+      max-width: 100%;
+      border: 1px solid #d0d5dd;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fff;
+      color: #101828;
+      outline: none;
+    }
+  }
+
+  .detail-card {
+    background: #fff;
+    border: 1px solid #edf0f5;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 10px 28px rgba(16, 24, 40, 0.08);
+  }
+
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+
+    h3 {
+      margin: 0;
+      color: #172033;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: #667085;
+      font-size: 14px;
+    }
+
+    .total-slot {
+      display: inline-flex;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: #1e40af;
+      font-size: 13px;
+      font-weight: 700;
+    }
+  }
+
+  .slot-table {
+    overflow-x: auto;
+
+    table {
+      margin-bottom: 0;
+      min-width: 900px;
+    }
+
+    thead th {
+      background: #ebf1f7;
+      color: #344054;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    tbody td {
+      text-align: center;
+      vertical-align: middle;
+      font-size: 14px;
+      color: #101828;
+    }
+  }
+
+  .status-pill {
+    display: inline-flex;
+    min-width: 88px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .status-pill--available {
+    background: #ecfdf3;
+    color: #027a48;
+  }
+
+  .status-pill--occupied {
+    background: #fff4e6;
+    color: #b54708;
+  }
+
+  .status-pill--maintain {
+    background: #f4f3ff;
+    color: #5925dc;
+  }
+
+  .slot-action {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    min-width: 220px;
+
+    select {
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 13px;
+      color: #101828;
+      background: #fff;
+    }
+
+    .btn-update {
+      border: none;
+      border-radius: 8px;
+      background: #1366d9;
+      color: #fff;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        background: #0f56b8;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  @media (max-width: 900px) {
+    padding: 16px;
+
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .lot-panel select {
+      min-width: 100%;
+    }
+  }
+}
+
+.manage-lot-modal {
+  .modal-content {
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    background: #1e6fa9;
+    color: #fff;
+  }
+
+  .helper-text {
+    font-size: 13px;
+    color: #475467;
+    font-weight: 500;
+  }
+}
