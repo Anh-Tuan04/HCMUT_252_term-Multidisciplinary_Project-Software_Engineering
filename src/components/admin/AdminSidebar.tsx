@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaCar, FaUserFriends } from "react-icons/fa";
+import { FaHome, FaCar, FaUserFriends, FaIdCard } from "react-icons/fa";
 import { BsBuildingCheck } from "react-icons/bs";
 import { ImProfile } from "react-icons/im";
 const AdminSidebar = ({ collapsed = false, mobileOpen = false, onCloseMobile }
@@ -23,6 +23,10 @@ const AdminSidebar = ({ collapsed = false, mobileOpen = false, onCloseMobile }
         <NavLink to="/admin/users" className="nav-item">
           <span className="icon"><FaUserFriends style={{ color: '#c5470d' }} /></span>
           {!collapsed && <span className="label">Quản lý người dùng</span>}
+        </NavLink>
+        <NavLink to="/admin/cards" className="nav-item">
+          <span className="icon"><FaIdCard style={{ color: '#3b82f6' }} /></span>
+          {!collapsed && <span className="label">Quản lý thẻ xe</span>}
         </NavLink>
         <NavLink to="/parking-status" className="nav-item">
           <span className="icon"><FaCar style={{ color: 'purple', fontSize: '1.2rem' }} /></span>

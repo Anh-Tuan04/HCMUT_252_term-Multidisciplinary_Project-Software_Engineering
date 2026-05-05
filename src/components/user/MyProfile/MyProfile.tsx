@@ -250,7 +250,7 @@ const MyProfile = () => {
               <div className="rfid-card__row">
                 <span>Trạng thái</span>
                 <strong>
-                  {rfidCard.isActive ? "Đang hoạt động" : "Đã khóa"}
+                  {rfidCard.isActive ? "Đã kích hoạt" : "Đã khóa"}
                 </strong>
               </div>
 

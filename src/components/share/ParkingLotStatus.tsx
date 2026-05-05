@@ -521,29 +521,31 @@ const ParkingLotStatus = () => {
     };
 
     const useCurrentTime = () => {
-        const [date, setDate] = useState(new Date());
+    const [date, setDate] = useState(new Date());
 
-        useEffect(() => {
-            const timer = window.setInterval(() => {
+    useEffect(() => {
+        const timer = window.setInterval(() => {
             setDate(new Date());
-            }, 1000);
+        }, 1000);
 
-            return () => window.clearInterval(timer);
-        }, []);
+        return () => window.clearInterval(timer);
+    }, []);
 
-        return {
-            time: date.toLocaleTimeString("vi-VN", {
+    return {
+        time: date.toLocaleTimeString("vi-VN", {
             hour: "2-digit",
             minute: "2-digit",
-            }),
-            date: date.toLocaleDateString("vi-VN", {
+            timeZone: "Asia/Ho_Chi_Minh",
+        }),
+        date: date.toLocaleDateString("vi-VN", {
             weekday: "long",
             day: "2-digit",
             month: "long",
             year: "numeric",
-            }),
-        };
+            timeZone: "Asia/Ho_Chi_Minh",
+        }),
     };
+};
 
     const RefreshIcon = () => (
         <svg viewBox="0 0 24 24" fill="none">

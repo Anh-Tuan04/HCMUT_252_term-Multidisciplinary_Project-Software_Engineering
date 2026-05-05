@@ -72,6 +72,12 @@ export const changeRoleUserForAdmin = (id: number, newRole: string) => {
   return axios.patch(URL_BACKEND, data);
 }
 
+// Admin - Find user by email
+export const findUserByEmail = (email: string) => {
+  const URL_BACKEND = 'api/v1/rfid-cards/user-email';
+  return axios.get(URL_BACKEND, { params: { email } });
+}
+
 // ========== Parking Lot API ==========
 export const getParkingLots = () => {
   const URL_BACKEND = '/api/v1/parking-lots';
@@ -94,6 +100,38 @@ export const adminUpdateParkingSlot = async (id: number, status: string) => {
 export const getMyRfidCard = () => {
   const URL_BACKEND = '/api/v1/rfid-cards/my-cards';
   return axios.get(URL_BACKEND);
+}
+
+// Admin - Summary counters
+export const getNumberCard = () => {
+  const URL_BACKEND = '/api/v1/rfid-cards/statistics';
+  return axios.get(URL_BACKEND);
+}
+
+// Admin - List cards with optional filters
+export const getCard = (status: string, page: number, pageSize: number, keyword: string) => {
+  const URL_BACKEND = '/api/v1/rfid-cards';
+  return axios.get(URL_BACKEND, { params: { status, page, pageSize, keyword } });
+}
+
+// Admin - Add new card
+export const addCard = (data: {
+  uid: string;
+  card_type: 'REGISTERED' | 'GUEST';
+  user_id?: number | null;
+}) => {
+  const URL_BACKEND = '/api/v1/rfid-cards';
+  return axios.post(URL_BACKEND, data);
+}
+
+// Admin - Update card
+export const updateCard = (id: number, data: {
+  user_id?: number | null;
+  card_type: "REGISTERED" | "GUEST";
+  is_active?: boolean;
+}) => {
+  const URL_BACKEND = `/api/v1/rfid-cards/${id}`;
+  return axios.patch(URL_BACKEND, data);
 }
 
 // ========== Parking Session API ==========
