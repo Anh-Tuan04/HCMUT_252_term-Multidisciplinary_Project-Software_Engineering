@@ -6,6 +6,7 @@ import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import ResetVerify from './pages/auth/ResetVerify'
 import Map from './pages/Map'
+import ParkingSession from './pages/ParkingSession'
 import ChangePassword from './pages/ChangePassword'
 import ErrorPage from './pages/Error'
 import AuthLayout from './layouts/AuthLayouts'
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
     element: <RequireAuth><MainLayout /></RequireAuth>, // Protected layout
     children: [
       { path: '/map', element: <Map /> },
+      { path: '/parking-session', element: <ParkingSession /> },
       { path: '/change-password', element: <ChangePassword /> },
     ]
   },

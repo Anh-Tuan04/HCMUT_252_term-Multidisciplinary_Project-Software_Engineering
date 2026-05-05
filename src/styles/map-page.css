@@ -270,7 +270,8 @@ body {
 .login-btn,
 .setting-btn,
 .card-btn,
-.dashboard-btn {
+.dashboard-btn,
+.history-btn {
   font-size: 30px;
   color: #341cac;
   display: flex;

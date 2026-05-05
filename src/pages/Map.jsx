@@ -149,6 +149,7 @@ function Map() {
 
 		const initialize = async () => {
 			try {
+				await webTransport.disconnect();
 				const loaded = await loadParkingLotData()
 				if (!loaded || !isMountedRef.current) {
 					return
@@ -170,9 +171,7 @@ function Map() {
 		}
 
 		void initialize()
-
 		return () => {
-			isMountedRef.current = false
 			document.body.classList.remove('is-logged-in')
 			window.clearInterval(timer)
 			unsubscribeReceive()
@@ -291,6 +290,13 @@ function Map() {
 				<button type="button" className="corner-btn auth-only">
 					<span className="material-icons card-btn">credit_card</span>
 				</button>
+				<button 
+					type="button" 
+					className="corner-btn auth-only"
+					onClick={() => navigate('/parking-session')}
+				>
+					<span className="material-icons history-btn">manage_history</span>
+				</button>
 				<button
 					type="button"
 					className="corner-btn auth-only btn-wrapper"
@@ -354,6 +360,9 @@ function Map() {
 				</div>
 				<h2>Cài đặt</h2>
 				<button className="sidebar-btn" type="button">
+					<Link to="/parking-session">Lịch sử gửi xe</Link>
+				</button>
+				<button className="sidebar-btn" type="button">
 					<Link to="/change-password">Đặt lại mật khẩu</Link>
 				</button>
 				<button type="button" className="sidebar-btn logout" onClick={handleLogout}>
@@ -368,3 +377,109 @@ function Map() {
 export default Map
 
 
+/*
+respone của getParkingLots
+{
+    "success": true,
+    "message": "Lấy danh sách bãi đỗ thành công",
+    "data": [
+        {
+            "id": 1,
+            "name": "A",
+            "location": "Main Area"
+        }
+    ]
+}
+
+
+response của getParkingLotById
+{
+    "success": true,
+    "message": "Lấy thông tin bãi đỗ thành công",
+    "data": {
+        "id": 1,
+        "name": "A",
+        "location": "Main Area",
+        "slots": [
+            {
+                "id": 1,
+                "name": "A1",
+                "status": "AVAILABLE",
+                "device_mac": "SENSOR_A_001",
+                "port_number": 1
+            },
+            {
+                "id": 2,
+                "name": "A2",
+                "status": "AVAILABLE",
+                "device_mac": "SENSOR_A_001",
+                "port_number": 2
+            },
+            {
+                "id": 3,
+                "name": "A3",
+                "status": "AVAILABLE",
+                "device_mac": "SENSOR_A_001",
+                "port_number": 3
+            },
+            {
+                "id": 4,
+                "name": "A4",
+                "status": "AVAILABLE",
+                "device_mac": "SENSOR_A_001",
+                "port_number": 4
+            },
+            {
+                "id": 5,
+                "name": "A5",
+                "status": "AVAILABLE",
+                "device_mac": "SENSOR_A_001",
+                "port_number": 5
+            },
+            {
+                "id": 6,
+                "name": "A6",
+                "status": "AVAILABLE",
+                "device_mac": "SENSOR_A_001",
+                "port_number": 6
+            },
+            {
+                "id": 7,
+                "name": "A7",
+                "status": "AVAILABLE",
+                "device_mac": "SENSOR_A_001",
+                "port_number": 7
+            },
+            {
+                "id": 8,
+                "name": "A8",
+                "status": "AVAILABLE",
+                "device_mac": "SENSOR_A_001",
+                "port_number": 8
+            }
+        ],
+        "stats": {
+            "total": 8,
+            "available": 8,
+            "occupied": 0,
+            "maintain": 0
+        }
+    }
+}
+
+
+response của updateSlotStatus
+{
+    "success": true,
+    "message": "Cập nhật trạng thái thành công",
+    "data": {
+        "changed": true,
+        "id": 2,
+        "lot_id": 1,
+        "name": "A2",
+        "message": "Cập nhật trạng thái thành công",
+        "old_status": "AVAILABLE",
+        "new_status": "OCCUPIED"
+    }
+}
+*/

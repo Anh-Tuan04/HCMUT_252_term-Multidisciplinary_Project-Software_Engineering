@@ -35,6 +35,7 @@ export async function connect(url) {
       let t
 
       if (certHashBase64) {
+        console.log(`[WT-FE] VITE_WEBTRANSPORT_CERT_HASH found: "${certHashBase64}"`);
         console.log('[WT-FE] using serverCertificateHashes')
         const hashArray = base64ToUint8Array(certHashBase64)
         t = new WebTransportCtor(url, {

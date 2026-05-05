@@ -16,6 +16,21 @@ export function ParkingSlotCard({
     const previousStatusRef = useRef(slot.status)
     const clickable = adminEnabled && !slot.isUpdating
 
+    // EFFECT 1: Dành riêng cho lần đầu tiên hiển thị (F5, Reload không được tính là lần đầu nên nó không chạy)
+    useEffect(() => {
+        // Nếu khi vừa load xong mà ô này đang có xe
+        if (slot.status === 'occupied') {
+            setAnimationClass('anim-in');
+            
+            // Xóa class sau khi diễn xong để không bị kẹt hiệu ứng
+            const timer = setTimeout(() => {
+                setAnimationClass('');
+            }, 600);
+
+            return () => clearTimeout(timer);
+        }
+    }, []); // [] đảm bảo chỉ chạy 1 lần duy nhất khi Mount
+    
     useEffect(() => {
         const prevStatus = previousStatusRef.current
         const nextStatus = slot.status
@@ -96,3 +111,10 @@ export function ParkingSlotCard({
         </div>
     )
 }
+/*
+Các bước hiệu ứng:
+1. Khi lần đầu tiên component được mount, nếu slot đã có xe (status = 'occupied'), sẽ áp dụng class 'anim-in' để chạy hiệu ứng xe đi vào.
+2. Khi status thay đổi từ 'occupied' sang 'empty' hoặc 'warning', sẽ áp dụng class 'anim-out' để chạy hiệu ứng xe chạy ra, sau đó mới cập nhật displayStatus để hiển thị ô trống hoặc cảnh báo.
+3. Khi status thay đổi từ 'empty' hoặc 'warning' sang 'occupied', sẽ ngay lập tức cập nhật displayStatus thành 'occupied' để hiển thị xe, sau đó áp dụng class 'anim-in' để chạy hiệu ứng xe đi vào.
+Do khi tải lại trang hoặc ấn nút reload, các trạng thái đã được gán ngay khi nhận thông tin từ server nên không có trạng thái trước và sau giống nhau, animation chỉ áp dụng khi trạng thái trước và sau khác nhau, nên reload hay F5 không có animation
+*/
