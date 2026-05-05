@@ -143,7 +143,7 @@ const URL_BACKEND = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:80
 
 /**
  * Lấy toàn bộ danh sách bãi đỗ xe.
- *
+ *	Đúng về path
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotResponse[]>>>} Response chứa danh sách bãi đỗ.
  */
 export const getParkingLots = () => {
@@ -152,7 +152,7 @@ export const getParkingLots = () => {
 
 /**
  * Lấy chi tiết một bãi đỗ theo ID, bao gồm danh sách slot và thống kê.
- *
+ *	Đúng về path
  * @param {number} lotId - ID bãi đỗ.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotDetailResponse>>>} Response chứa dữ liệu chi tiết bãi đỗ.
  */
@@ -162,7 +162,7 @@ export const getParkingLotById = (lotId) => {
 
 /**
  * Tạo mới bãi đỗ xe.
- *
+ *	Đúng về path
  * @param {CreateParkingLotPayload} payload - Payload tạo bãi đỗ.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotResponse>>>} Response chứa bãi đỗ vừa tạo.
  */
@@ -172,7 +172,7 @@ export const createParkingLot = (payload) => {
 
 /**
  * Cập nhật thông tin bãi đỗ theo ID.
- *
+ *	Sai về path
  * @param {number} lotId - ID bãi đỗ.
  * @param {UpdateParkingLotPayload} payload - Payload cập nhật.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotResponse>>>} Response chứa bãi đỗ sau cập nhật.
@@ -183,7 +183,7 @@ export const updateParkingLot = (lotId, payload) => {
 
 /**
  * Lấy danh sách cổng theo bãi đỗ.
- *
+ *	Đúng về path
  * @param {number} lotId - ID bãi đỗ.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotGateResponse[]>>>} Response chứa danh sách cổng.
  */
@@ -193,7 +193,7 @@ export const getParkingLotGates = (lotId) => {
 
 /**
  * Tạo mới cổng (gate) cho bãi đỗ.
- *
+ *	Đúng về path
  * @param {CreateGatePayload} payload - Payload tạo cổng theo chuẩn server.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<GateResponse>>>} Response chứa thông tin cổng mới.
  */
@@ -203,7 +203,7 @@ export const createGate = (payload) => {
 
 /**
  * Lấy thông tin cổng theo ID.
- *
+ *	Đúng về path
  * @param {number} gateId - ID cổng.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<GateResponse>>>} Response chứa thông tin cổng.
  */
@@ -213,7 +213,7 @@ export const getGateById = (gateId) => {
 
 /**
  * Cập nhật thông tin cổng theo ID.
- *
+ *	Đúng về path
  * @param {number} gateId - ID cổng.
  * @param {UpdateGatePayload} payload - Payload cập nhật cổng.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<GateResponse>>>} Response chứa thông tin cổng sau cập nhật.
@@ -224,7 +224,7 @@ export const updateGate = (gateId, payload) => {
 
 /**
  * Xóa cổng theo ID.
- *
+ *	Đúng về path
  * @param {number} gateId - ID cổng.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<null>>>} Response chuẩn với `data = null`.
  */
@@ -234,7 +234,7 @@ export const deleteGate = (gateId) => {
 
 /**
  * Tạo mới vị trí đỗ xe.
- *
+ *	Đúng về path
  * @param {CreateParkingSlotPayload} payload - Payload tạo vị trí đỗ.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotSlotResponse>>>} Response chứa vị trí đỗ vừa tạo.
  */
@@ -244,17 +244,17 @@ export const createParkingSlot = (payload) => {
 
 /**
  * Lấy thông tin vị trí đỗ theo ID.
- *
+ *	Đúng về path
  * @param {number} slotId - ID vị trí đỗ.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<ParkingLotSlotResponse>>>} Response chứa thông tin vị trí đỗ.
- */
+ */	
 export const getParkingSlotById = (slotId) => {
 	return instance.get(`${URL_BACKEND}/parking-slots/${slotId}`)
 }
 
 /**
  * Thay đổi thiết bị IoT gắn với vị trí đỗ.
- *
+ *	Đúng về path
  * @param {number} slotId - ID vị trí đỗ.
  * @param {ChangeSlotDevicePayload} payload - Payload đổi thiết bị.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<null>>>} Response chuẩn với `data = null`.
@@ -265,33 +265,33 @@ export const updateParkingSlotDevice = (slotId, payload) => {
 
 /**
  * Quản trị viên hoặc quản lý cập nhật trạng thái vị trí đỗ.
- *
+ *	Đúng về path
  * @param {number} slotId - ID vị trí đỗ.
  * @param {UpdateSlotStatusPayload} payload - Payload cập nhật trạng thái.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<UpdateSlotStatusResponse>>>} Response chứa kết quả cập nhật trạng thái.
  */
 export const updateParkingSlotStatus = (slotId, payload) => {
-	return instance.patch(`${URL_BACKEND}/parking-slots/${slotId}/status`, payload)
+	return instance.patch(`${URL_BACKEND}/parking-slots/admin/${slotId}`, payload)
 }
 
 /**
  * Thiết bị cảm biến cập nhật trạng thái vị trí đỗ.
- *
+ *	Còn sai về path
  * @param {SensorUpdateSlotStatusPayload} payload - Payload trạng thái từ thiết bị.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<UpdateSlotStatusResponse>>>} Response chứa kết quả cập nhật trạng thái.
  */
 export const sensorUpdateSlotStatus = (payload) => {
-	return instance.patch(`${URL_BACKEND}/parking-slots/sensor/status`, payload)
+	return instance.patch(`${URL_BACKEND}/parking-slots/sensor`, payload)
 }
 
 /**
  * Lấy lịch sử hoạt động của một vị trí đỗ.
- *
+ *	Đúng về path
  * @param {number} slotId - ID vị trí đỗ.
  * @returns {Promise<import('axios').AxiosResponse<ApiSuccessResponse<SlotHistoryResponse[]>>>} Response chứa danh sách lịch sử.
  */
 export const getSlotHistory = (slotId) => {
-	return instance.get(`${URL_BACKEND}/parking-slots/${slotId}/history`)
+	return instance.get(`${URL_BACKEND}/slots-histories/${slotId}`)
 }
 
 

@@ -1,22 +1,182 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ParkingMapGrid } from '../components/map-page/ParkingMapGrid'
 import { logout } from '../services/authService'
+import { getParkingLotById, getParkingLots, updateParkingSlotStatus } from '../services/mapService'
+import webTransport from '../services/webTransport'
+import {
+	applyRealtimeSlotUpdate,
+	calculateSlotStats,
+	createParkingSlotViews,
+} from '../utils/mapSlotHelpers'
 import '../styles/map-page.css'
 
 const dayNames = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
+const WEBTRANSPORT_URL = import.meta.env.VITE_WEBTRANSPORT_URL || 'https://localhost:8443/wt'
 
 function Map() {
 	const navigate = useNavigate()
 	const [now, setNow] = useState(new Date())
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+	const [errorMessage, setErrorMessage] = useState('')
+	const [errorTimestamp, setErrorTimestamp] = useState(0)
+	const [slotViews, setSlotViews] = useState([])
+	const [isLoading, setIsLoading] = useState(true)
+	const [isReloading, setIsReloading] = useState(false)
+	const [isReconnecting, setIsReconnecting] = useState(false)
+	const [selectedSlotId, setSelectedSlotId] = useState(null)
+	const parkingLotIdRef = useRef(1)
+	const webTransportUrlRef = useRef(WEBTRANSPORT_URL)
+	const isMountedRef = useRef(true)
+
+	const currentUser = useMemo(() => {
+		if (typeof window === 'undefined') {
+			return null
+		}
+
+		try {
+			const rawUser = localStorage.getItem('user_info')
+			return rawUser ? JSON.parse(rawUser) : null
+		} catch {
+			return null
+		}
+	}, [])
+
+	const adminEnabled = Boolean(
+		currentUser && ['ADMIN', 'MANAGER'].includes(String(currentUser.role ?? '').toUpperCase()),
+	)
+
+	const slotStats = useMemo(() => calculateSlotStats(slotViews), [slotViews])
+
+	const setError = (message) => {
+		setErrorMessage(message)
+		setErrorTimestamp(Date.now())
+	}
+
+	const loadParkingLotData = async () => {
+		try {
+			const lotsResponse = await getParkingLots()
+			const lots = lotsResponse?.data?.data ?? []
+
+			if (!lotsResponse?.data?.success || !lots.length) {
+				setError('Không thể tải danh sách bãi đỗ')
+				return false
+			}
+
+			const lotId = lots[0].id
+			parkingLotIdRef.current = lotId
+
+			const detailsResponse = await getParkingLotById(lotId)
+			const parkingLot = detailsResponse?.data?.data
+
+			if (!detailsResponse?.data?.success || !parkingLot) {
+				setError('Không thể tải thông tin bãi đỗ')
+				return false
+			}
+
+			if (!isMountedRef.current) {
+				return false
+			}
+
+			// create new views and preserve loadedAt for unchanged slots so animations only run for changed ones
+			const newViews = createParkingSlotViews(parkingLot.slots ?? [])
+			const merged = newViews.map((nv) => {
+				const prev = slotViews.find((s) => s.id === nv.id)
+				if (prev) {
+					if (prev.status !== nv.status) {
+						// mark as changed so child can animate
+						nv.loadedAt = Date.now()
+					} else {
+						nv.loadedAt = prev.loadedAt ?? nv.loadedAt
+					}
+				}
+				return nv
+			})
+
+			setSlotViews(merged)
+			setSelectedSlotId(null)
+			return true
+		} catch (error) {
+			setError(error?.response?.data?.message || error?.message || 'Lỗi tải dữ liệu bãi đỗ')
+			return false
+		}
+	}
+
+	const handleReload = async () => {
+		setIsReloading(true)
+		try {
+			await loadParkingLotData()
+		} finally {
+			if (isMountedRef.current) {
+				setIsReloading(false)
+			}
+		}
+	}
+
+	const handleReconnect = async () => {
+		setIsReconnecting(true)
+		try {
+			await webTransport.disconnect()
+			// const url = `${webTransportUrlRef.current}?lotId=${parkingLotIdRef.current}`
+			const url = `${webTransportUrlRef.current}`
+			await webTransport.connect(url)
+		} catch (error) {
+			setError(error?.message || 'Không thể kết nối WebTransport')
+		} finally {
+			if (isMountedRef.current) {
+				setIsReconnecting(false)
+			}
+		}
+	}
 
 	useEffect(() => {
+		isMountedRef.current = true
 		document.body.classList.add('is-logged-in')
 		document.body.classList.remove('is-logged-out')
-		const timer = setInterval(() => setNow(new Date()), 1000)
+
+		const timer = window.setInterval(() => setNow(new Date()), 1000)
+		let unsubscribeReceive = () => {}
+
+		const handleRealtimeMessage = (message) => {
+			if (!message || message.event !== 'slotStatusUpdated' || !message.data) {
+				return
+			}
+
+			setSlotViews((previousSlots) => {
+				return applyRealtimeSlotUpdate(previousSlots, message.data, parkingLotIdRef.current)
+			})
+		}
+
+		const initialize = async () => {
+			try {
+				const loaded = await loadParkingLotData()
+				if (!loaded || !isMountedRef.current) {
+					return
+				}
+
+				unsubscribeReceive = webTransport.receive(handleRealtimeMessage)
+				// const url = `${webTransportUrlRef.current}?lotId=${parkingLotIdRef.current}`
+				const url = `${webTransportUrlRef.current}`
+				await webTransport.connect(url)
+			} catch (error) {
+				if (isMountedRef.current) {
+					setError(error?.message || 'Không thể khởi tạo WebTransport')
+				}
+			} finally {
+				if (isMountedRef.current) {
+					setIsLoading(false)
+				}
+			}
+		}
+
+		void initialize()
+
 		return () => {
+			isMountedRef.current = false
 			document.body.classList.remove('is-logged-in')
-			clearInterval(timer)
+			window.clearInterval(timer)
+			unsubscribeReceive()
+			void webTransport.disconnect()
 		}
 	}, [])
 
@@ -37,10 +197,61 @@ function Map() {
 	const handleLogout = async () => {
 		try {
 			await logout()
-		} catch (error) {
-			// Ignore logout errors for now.
+		} catch {
+			// Ignore logout errors; clear local state anyway.
+		} finally {
+			localStorage.removeItem('user_info')
 		}
+
 		navigate('/')
+	}
+
+	const handleSelectSlot = (slotId) => {
+		if (!adminEnabled) return
+		setSelectedSlotId((prev) => (prev === slotId ? null : slotId))
+	}
+
+	const handleCloseSlotMenu = () => setSelectedSlotId(null)
+
+	const handleChangeSlotStatus = async (slotId, visualStatus) => {
+		if (!adminEnabled) return
+
+		// map visual status to server status
+		const toServer = (vs) => {
+			switch (vs) {
+				case 'empty':
+					return 'AVAILABLE'
+				case 'occupied':
+					return 'OCCUPIED'
+				case 'warning':
+					return 'MAINTAIN'
+				default:
+					return 'AVAILABLE'
+			}
+		}
+
+		// optimistically mark updating
+		setSlotViews((prev) => prev.map((s) => (s.id === slotId ? { ...s, isUpdating: true } : s)))
+
+		try {
+			const resp = await updateParkingSlotStatus(slotId, { status: toServer(visualStatus) })
+			const data = resp?.data?.data
+			if (resp?.data?.success && data) {
+				setSlotViews((prev) =>
+					prev.map((s) => {
+						if (s.id !== slotId) return s
+						const nextStatus = visualStatus
+						return { ...s, status: nextStatus, isUpdating: false, loadedAt: Date.now() }
+					}),
+				)
+				setSelectedSlotId(null)
+			} else {
+				throw new Error(resp?.data?.message || 'Không thể cập nhật trạng thái')
+			}
+		} catch (error) {
+			setError(error?.response?.data?.message || error?.message || 'Lỗi khi cập nhật trạng thái')
+			setSlotViews((prev) => prev.map((s) => (s.id === slotId ? { ...s, isUpdating: false } : s)))
+		}
 	}
 
 	return (
@@ -53,12 +264,12 @@ function Map() {
 			<div className="slot-stats">
 				<div className="stats-col">
 					<div className="stats-title">Trống</div>
-					<div className="available-count stats-value">0/0</div>
+					<div className="available-count stats-value">{slotStats.empty}/{slotStats.total}</div>
 				</div>
 				<div className="stats-divider"></div>
 				<div className="stats-col">
 					<div className="stats-title">Đã đỗ</div>
-					<div className="occupied-count stats-value">0/0</div>
+					<div className="occupied-count stats-value">{slotStats.occupied}/{slotStats.total}</div>
 				</div>
 			</div>
 
@@ -80,16 +291,59 @@ function Map() {
 				<button type="button" className="corner-btn auth-only">
 					<span className="material-icons card-btn">credit_card</span>
 				</button>
+				<button
+					type="button"
+					className="corner-btn auth-only btn-wrapper"
+					onClick={handleReconnect}
+					disabled={isLoading || isReconnecting}
+				>
+					<div className="btn-guide" style={{ right: '70px' }}>
+						<span className="btn-note">Kết nối Webtransport lại</span>
+					</div>
+					<span className={`material-icons ${isReconnecting ? 'spinning-icon-clockwise' : ''}`}>
+						sync
+					</span>
+				</button>
 			</div>
 
-			<div className="map-wrapper">
-				<div className="map-container" />
+			<ParkingMapGrid
+				slots={slotViews}
+				adminEnabled={adminEnabled}
+				selectedSlotId={selectedSlotId}
+				onSelectSlot={handleSelectSlot}
+				onCloseSlotMenu={handleCloseSlotMenu}
+				onChangeSlotStatus={handleChangeSlotStatus}
+			/>
+
+			<div
+				key={errorTimestamp}
+				id="global-error-toast"
+				className={`error-toast ${errorMessage ? 'is-visible' : ''}`}
+				aria-live="polite"
+				aria-hidden={!errorMessage}
+			>
+				<span className="error-toast-text">{errorMessage}</span>
+				<button
+					type="button"
+					className="error-toast-close"
+					aria-label="Đóng thông báo"
+					onClick={() => setErrorMessage('')}
+				>
+					❌
+				</button>
 			</div>
 
-			<div id="global-error-toast" className="error-toast" />
-
-			<button className="reload-btn" type="button" disabled>
-				<img src="../src/assets/MapPage/ReloadIcon.svg" alt="Reload" />
+			<button
+				className={`reload-btn ${isReloading ? 'is-loading' : ''}`}
+				type="button"
+				onClick={handleReload}
+				disabled={isLoading || isReloading}
+			>
+				<img
+					className={isReloading ? 'spinning-icon-clockwise' : ''}
+					src="../src/assets/MapPage/ReloadIcon.svg"
+					alt="Reload"
+				/>
 			</button>
 
 			<div className="up-arrow">↑</div>
@@ -100,9 +354,7 @@ function Map() {
 				</div>
 				<h2>Cài đặt</h2>
 				<button className="sidebar-btn" type="button">
-					<Link to="/change-password">
-						Đặt lại mật khẩu
-					</Link>
+					<Link to="/change-password">Đặt lại mật khẩu</Link>
 				</button>
 				<button type="button" className="sidebar-btn logout" onClick={handleLogout}>
 					<span className="material-icons">logout</span>
@@ -114,3 +366,5 @@ function Map() {
 }
 
 export default Map
+
+

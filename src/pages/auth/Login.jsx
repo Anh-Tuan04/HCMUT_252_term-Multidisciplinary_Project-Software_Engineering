@@ -42,6 +42,7 @@ function Login() {
 			const apiData = response?.data
 			if (apiData?.success) {
 				const accessToken = apiData?.data?.access_token
+				const userInfo = apiData?.data?.user
 
 				if (!accessToken) {
 					setFeedback({
@@ -51,6 +52,10 @@ function Login() {
 					return
 				}
 				setAccessToken(accessToken)
+				// Lưu thông tin người dùng vào localStorage
+				if (userInfo) {
+					localStorage.setItem('user_info', JSON.stringify(userInfo))
+				}
 				setFeedback({ type: 'is-success', message: apiData.message || 'Đăng nhập thành công.' })
 				navigate('/map')
 				return

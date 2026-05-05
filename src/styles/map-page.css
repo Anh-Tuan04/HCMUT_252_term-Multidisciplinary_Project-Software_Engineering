@@ -137,6 +137,36 @@ body {
 /* ================================================================
    4. TIỆN ÍCH TRÊN CÙNG (TOP WIDGETS)
    ================================================================ */
+/* Hướng dẫn chức năng của 1 button */
+.btn-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btn-guide {
+  position: absolute;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.btn-note {
+  background: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-right: 5px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn-wrapper:hover .btn-note {
+  opacity: 1;
+}
 
 /* Clock Card (Top Left) */
 .clock-card {
@@ -445,18 +475,64 @@ body {
 /* Thông báo lỗi */
 .error-toast {
   position: absolute;
-  bottom: 100px;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 68, 68, 0.9);
-  color: white;
-  padding: 8px 20px;
+  bottom: 100px;
+  transform: translateX(-50%); /* Bỏ translateY ở đây để dễ kiểm soát animation */
+  
+  /* CỐT LÕI: Rộng theo chữ */
+  width: max-content; 
+  max-width: min(760px, calc(100vw - 32px));
+  
+  padding: 10px 16px;
   border-radius: 20px;
-  font-size: 13px;
+  background: rgba(255, 68, 68, 0.94);
+  color: #ffffff;
   display: none;
+  align-items: center;
+  gap: 10px;
   z-index: 1000;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
+  
+  /* Animation */
+  animation: 
+      error-animation-fadeIn 0.3s ease forwards,
+      error-animation-fadeOut 0.3s ease forwards 3.7s;
+  }
+
+@keyframes error-animation-fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes error-animation-fadeOut {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+}
+
+.error-toast.is-visible {
+  display: flex;
+}
+
+.error-toast-text {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.error-toast-close {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.error-toast-close:hover {
+  background: rgba(255, 255, 255, 0.24);
 }
 
 /* ================================================================
@@ -563,6 +639,36 @@ body.is-logged-out .slot-menu {
   100% {
     transform: translateY(120%) rotate(-90deg);
     opacity: 0;
+  }
+}
+
+/* Class để làm icon xoay tròn */
+.spinning-icon-clockwise {
+  animation: spin-clockwise-animation 2s linear infinite;
+  display: inline-block; /* Quan trọng để spinning hoạt động chuẩn */
+}
+
+@keyframes spin-clockwise-animation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Class để làm icon xoay tròn */
+.spinning-icon-counterclockwise {
+  animation: spin-counterclockwise-animation 2s linear infinite;
+  display: inline-block; /* Quan trọng để spinning hoạt động chuẩn */
+}
+
+@keyframes spin-counterclockwise-animation {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
   }
 }
 
