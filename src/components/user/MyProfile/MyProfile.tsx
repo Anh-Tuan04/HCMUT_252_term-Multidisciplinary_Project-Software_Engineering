@@ -3,7 +3,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setAccount } from "../../../redux/slices/userSlice";
 import { toast } from "react-toastify";
-import type { RfidCard, UserProfile } from "../../../interfaces";
+import type { RfidCard, UserProfile, UserInfo } from "../../../interfaces";
 
 import {
   getMyProfile,
@@ -24,6 +24,7 @@ type ProfileForm = {
   lastName: string;
   email: string;
   role: string;
+  money: number;
 };
 
 type ApiError = {
@@ -43,6 +44,7 @@ const MyProfile = () => {
     lastName: "",
     email: "",
     role: "USER",
+    money: 0,
   });
 
   const [rfidCard, setRfidCard] = useState<RfidCard | null>(null);
@@ -63,13 +65,14 @@ const MyProfile = () => {
           const res = profileRes.value;
 
           if (res.data.success && res.data.data) {
-            const userData: UserProfile = res.data.data;
+            const userData: UserInfo = res.data.data;
 
             setProfile({
               firstName: userData.first_name || account?.first_name || "",
               lastName: userData.last_name || account?.last_name || "",
               email: userData.email || account?.email || "",
               role: userData.role || account?.role || "USER",
+              money: userData.money || 0,
             });
           } else {
             setProfile({
@@ -77,6 +80,7 @@ const MyProfile = () => {
               lastName: account?.last_name || "",
               email: account?.email || "",
               role: account?.role || "USER",
+              money: 0,
             });
           }
         } else {
@@ -85,6 +89,7 @@ const MyProfile = () => {
             lastName: account?.last_name || "",
             email: account?.email || "",
             role: account?.role || "USER",
+            money: 0,
           });
         }
 
@@ -136,7 +141,7 @@ const MyProfile = () => {
       );
 
       if (res.data.success && res.data.data) {
-        const updatedUser: UserProfile = res.data.data;
+        const updatedUser: UserInfo = res.data.data;
 
         const nextAccount = {
           id: updatedUser.id || account?.id,
@@ -151,6 +156,7 @@ const MyProfile = () => {
           lastName: nextAccount.last_name || "",
           email: nextAccount.email || "",
           role: nextAccount.role || "USER",
+          money: 0,
         });
 
         dispatch(setAccount(nextAccount));
@@ -196,6 +202,11 @@ const MyProfile = () => {
           <div className="form-group">
             <label>Vai trò</label>
             <input value={profile.role} disabled />
+          </div>
+
+          <div className="form-group">
+            <label>Số dư</label>
+            <input value={profile.money + ' VND'} disabled />
           </div>
 
           <div className="form-row">
