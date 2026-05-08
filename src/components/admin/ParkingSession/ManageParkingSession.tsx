@@ -11,7 +11,7 @@ import {
   getRevenueByDay,
   getRevenueByMonth,
 } from "../../../services/apiServices";
-import type { ParkingSession } from "../../../interfaces";
+import type { Lot, ParkingSession } from "../../../interfaces";
 
 import "./ManageParkingSession.scss";
 
@@ -37,13 +37,22 @@ const ManageParkingSession = () => {
   const [pageCount, setPageCount] = useState(0);
 
   const [listSessions, setListSessions] = useState<ParkingSession[]>([]);
+  const [lots, setLots] = useState<Lot[]>([]);
   const [dataView, setDataView] = useState<ParkingSession>({} as ParkingSession);
   const [showModelView, setShowModelView] = useState(false);
   const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
   const [currentRevenueDay, setCurrentRevenueDay] = useState(0);
   const [currentRevenueMonth, setCurrentRevenueMonth] = useState(0);
-  const [loadingRevenue, setLoadingRevenue] = useState(false);
+  const [loadingLots, setLoadingLots] = useState(false);
   const didInitDateEffect = useRef(false);
+
+  const resetSessionState = () => {
+    setListSessions([]);
+    setPageCount(0);
+    setCurrentRevenueDay(0);
+    setCurrentRevenueMonth(0);
+    setCurrentPage(1);
+  };
 
   const fetchParkingSessions = async (
     selectedDate = date,
@@ -51,7 +60,13 @@ const ManageParkingSession = () => {
     keyword = searchTerm
   ) => {
     try {
-      const res = await getAllParkingSessions(selectedDate, page, PAGE_SIZE, keyword);
+      const res = await getAllParkingSessions(
+        selectedDate,
+        page,
+        PAGE_SIZE,
+        keyword,
+        selectedLotId ?? undefined
+      );
 
       if (res?.data?.success) {
         const payload = res.data.data;
@@ -75,7 +90,6 @@ const ManageParkingSession = () => {
   // Rút gọn useEffect giống ManageUser
   const fetchCurrentRevenue = async (lotId: number) => {
     try {
-      setLoadingRevenue(true);
       const [dayRes, monthRes] = await Promise.all([
         getRevenueByDay(lotId, date),
         getRevenueByMonth(lotId, date),
@@ -88,36 +102,53 @@ const ManageParkingSession = () => {
       setCurrentRevenueMonth(0);
       toast.error("Lỗi khi lấy doanh thu hiện tại");
     } finally {
-      setLoadingRevenue(false);
+      // setLoadingRevenue(false);
     }
   };
 
   useEffect(() => {
     const loadInitialData = async () => {
-      await fetchParkingSessions(date, 1, "");
-
       try {
+        setLoadingLots(true);
         const lotRes = await getAllLot();
         if (lotRes?.data?.success) {
-          const lots = lotRes?.data?.data || [];
-          if (Array.isArray(lots) && lots.length > 0) {
-            setSelectedLotId(lots[0].id);
+          const lotList = lotRes?.data?.data || [];
+          if (Array.isArray(lotList) && lotList.length > 0) {
+            setLots(lotList);
+            setSelectedLotId(lotList[0].id);
+          } else {
+            setLots([]);
+            setSelectedLotId(null);
+            resetSessionState();
           }
+        } else {
+          setLots([]);
+          setSelectedLotId(null);
+          resetSessionState();
         }
       } catch {
+        setLots([]);
         setSelectedLotId(null);
+        resetSessionState();
+      } finally {
+        setLoadingLots(false);
       }
     };
 
     loadInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!selectedLotId) return;
+    if (!selectedLotId) {
+      return;
+    }
+
     const fetchData = async () => {
-        await fetchCurrentRevenue(selectedLotId);
+      setCurrentPage(1);
+      await fetchParkingSessions(date, 1, search ? searchTerm : "");
+      await fetchCurrentRevenue(selectedLotId);
     };
+
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLotId]);
@@ -129,23 +160,14 @@ const ManageParkingSession = () => {
     }
 
     const fetchDataByDate = async () => {
+      if (!selectedLotId) return;
       await fetchParkingSessions(date, 1, search ? searchTerm : "");
-      if (selectedLotId) {
-        await fetchCurrentRevenue(selectedLotId);
-      }
+      await fetchCurrentRevenue(selectedLotId);
     };
 
     fetchDataByDate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date]);
-
-  useEffect(() => {
-    if (selectedLotId || listSessions.length === 0) return;
-    const fetchData = () => {
-        setSelectedLotId(listSessions[0].lot_id);
-    };
-    fetchData();
-  }, [listSessions, selectedLotId]);
 
   const handleClearSearch = async () => {
     setCurrentPage(1);
@@ -176,7 +198,16 @@ const ManageParkingSession = () => {
 
     setDate(selectedDate);
     setCurrentPage(1);
+  };
 
+  const handleChangeLot = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (!value) {
+      setSelectedLotId(null);
+      resetSessionState();
+      return;
+    }
+    setSelectedLotId(Number(value));
   };
 
   const handleClickBtnView = (session: ParkingSession) => {
@@ -226,6 +257,27 @@ const ManageParkingSession = () => {
             <FaCalendarAlt className="date-icon" />
             <input type="date" value={date} onChange={handleChangeDate} />
           </div>
+          <div className="lot-filter">
+            <label htmlFor="parking-session-lot-select">Lot</label>
+            <select
+              id="parking-session-lot-select"
+              value={selectedLotId ?? ""}
+              onChange={handleChangeLot}
+              disabled={loadingLots || lots.length === 0}
+            >
+              {lots.length === 0 ? (
+                <option value="">
+                  {loadingLots ? "Đang tải..." : "Chưa có lot"}
+                </option>
+              ) : (
+                lots.map((lot) => (
+                  <option key={lot.id} value={lot.id}>
+                    {lot.id} - {lot.name} - {lot.location}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -233,14 +285,14 @@ const ManageParkingSession = () => {
         <div className="revenue-card">
           <div className="revenue-label">Doanh thu hôm nay</div>
           <div className="revenue-value">
-            {loadingRevenue ? "Đang tải..." : formatMoney(currentRevenueDay)}
+            {formatMoney(currentRevenueDay)}
           </div>
         </div>
 
         <div className="revenue-card">
           <div className="revenue-label">Doanh thu tháng này</div>
           <div className="revenue-value">
-            {loadingRevenue ? "Đang tải..." : formatMoney(currentRevenueMonth)}
+            {formatMoney(currentRevenueMonth)}
           </div>
         </div>
       </div>
