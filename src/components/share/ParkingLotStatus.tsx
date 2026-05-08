@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from 'react-router-dom';
 import "./ParkingLotStatus.scss";
 import BlueCarTopView from "../../assets/BlueCarTopView.svg";
 import { useNavigate } from "react-router-dom";
@@ -64,7 +65,7 @@ const buildStatsFromSlots = (slots: ParkingSlot[]) => {
 const ParkingLotStatus = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const { account } = useAppSelector((state) => state.user);
+    const { isAuthenticated, account } = useAppSelector((state) => state.user);
     const isAdmin = account?.role?.toUpperCase() === "ADMIN";
 
     const [showMenu, setShowMenu] = useState(false);
@@ -304,81 +305,87 @@ const ParkingLotStatus = () => {
     const selectedLotText = activeLotDetail
         ? `${activeLotDetail.id} - ${activeLotDetail.name} - ${activeLotDetail.location}`
         : selectedLot
-        ? `${selectedLot.id} - ${selectedLot.name} - ${selectedLot.location}`
-        : "Đang tải...";
+            ? `${selectedLot.id} - ${selectedLot.name} - ${selectedLot.location}`
+            : "Đang tải...";
 
     return (
         <div className="parking-page">
             <div className="parking-bg parking-bg--one" />
             <div className="parking-bg parking-bg--two" />
 
-            <div className="top-navigation" ref={menuRef}>
-                <span className="user-name">
-                    Xin chào, {account?.first_name || "User"}
-                </span>
+            {isAuthenticated ? (
+                <div className="top-navigation" ref={menuRef}>
+                    <span className="user-name">
+                        Xin chào, {account?.first_name || "User"}
+                    </span>
 
-                <div className="avatar-container">
-                    <button
-                        onClick={() => setShowMenu((prev) => !prev)}
-                        className="avatar-btn"
-                    >
-                        <img
-                            src={`https://ui-avatars.com/api/?name=${
-                                account?.first_name + " " + account?.last_name || "User"
-                            }&background=35b9f3&color=fff`}
-                            alt="Avatar"
-                            className="img"
-                        />
-                    </button>
+                    <div className="avatar-container">
+                        <button
+                            onClick={() => setShowMenu((prev) => !prev)}
+                            className="avatar-btn"
+                        >
+                            <img
+                                src={`https://ui-avatars.com/api/?name=${account?.first_name + " " + account?.last_name || "User"
+                                    }&background=35b9f3&color=fff`}
+                                alt="Avatar"
+                                className="img"
+                            />
+                        </button>
 
-                    {showMenu && (
-                        <div className="dropdown-menu">
-                            <button
-                                onClick={() => {
-                                    setShowMenu(false);
-                                    navigate("/");
-                                }}
-                                className="dropdown-item"
-                            >
-                                <FaHome className="dropdown-icon icon1" />
-                                Trang chủ
-                            </button>
-
-                            <button
-                                onClick={() => {
-                                    setShowMenu(false);
-                                    navigate("/user");
-                                }}
-                                className="dropdown-item"
-                            >
-                                <FaRegUser className="dropdown-icon icon2" />
-                                Trang cá nhân
-                            </button>
-
-                            {isAdmin && (
+                        {showMenu && (
+                            <div className="dropdown-menu">
                                 <button
                                     onClick={() => {
                                         setShowMenu(false);
-                                        navigate("/admin");
+                                        navigate("/");
                                     }}
                                     className="dropdown-item"
                                 >
-                                    <FaCog className="dropdown-icon icon3" />
-                                    Quản trị hệ thống
+                                    <FaHome className="dropdown-icon icon1" />
+                                    Trang chủ
                                 </button>
-                            )}
 
-                            <button
-                                onClick={handleLogout}
-                                className="dropdown-item"
-                            >
-                                <FiLogOut className="dropdown-icon icon4" />
-                                Đăng xuất
-                            </button>
-                        </div>
-                    )}
+                                <button
+                                    onClick={() => {
+                                        setShowMenu(false);
+                                        navigate("/user");
+                                    }}
+                                    className="dropdown-item"
+                                >
+                                    <FaRegUser className="dropdown-icon icon2" />
+                                    Trang cá nhân
+                                </button>
+
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => {
+                                            setShowMenu(false);
+                                            navigate("/admin");
+                                        }}
+                                        className="dropdown-item"
+                                    >
+                                        <FaCog className="dropdown-icon icon3" />
+                                        Quản trị hệ thống
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={handleLogout}
+                                    className="dropdown-item"
+                                >
+                                    <FiLogOut className="dropdown-icon icon4" />
+                                    Đăng xuất
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <div className="top-navigation auth-buttons">
+                    <Link to="/login" className="auth-btn auth-btn--login">Đăng nhập</Link>
+                    <Link to="/register" className="auth-btn auth-btn--register">Đăng ký</Link>
+                </div>
+            )}
 
             <header className="parking-header">
                 <div className="time-card">

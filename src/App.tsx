@@ -19,33 +19,38 @@ import ManagerUser from './components/admin/ManageUser/ManagerUser.js';
 import ManageCard from './components/admin/ManageCard/ManageCard.js';
 import ManageLot from './components/admin/ManageLot/ManageLot.js';
 import ManageDevice from './components/admin/ManageDevice/ManageDevice.js';
+import DepositSuccess from './components/statusPayment/DepositSuccess.js';
+import DepositCancel from './components/statusPayment/DepositCancel.js';
 
 const App = () => {
   return (
-      <Routes>
-        <Route path="/" element={<WelcomePage />} />
+    <Routes>
+      <Route path="/" element={<WelcomePage />} />
 
-        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="parking_sessions" element={<ManageParkingSession />} />
-          <Route path="users" element={<ManagerUser />} />
-          <Route path="cards" element={<ManageCard />} />
-          <Route path="parking_areas" element={<ManageLot />} />
-          <Route path="devices" element={<ManageDevice />} />
-        </Route>
+      <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+        <Route index element={<Dashboard />} />
+        <Route path="parking_sessions" element={<ManageParkingSession />} />
+        <Route path="users" element={<ManagerUser />} />
+        <Route path="cards" element={<ManageCard />} />
+        <Route path="parking_areas" element={<ManageLot />} />
+        <Route path="devices" element={<ManageDevice />} />
+      </Route>
 
-        <Route path="/user" element={<PrivateRoute><UserLayout /></PrivateRoute>}>
-          <Route index element={<MyProfile />} />
-          <Route path="parking_sessions" element={<MyParkingSession />} />
-        </Route>
+      <Route path="/user" element={<PrivateRoute><UserLayout /></PrivateRoute>}>
+        <Route index element={<MyProfile />} />
+        <Route path="parking_sessions" element={<MyParkingSession />} />
+      </Route>
 
-        <Route path="/parking-status" element={<PrivateRoute><ParkingLotStatus /></PrivateRoute>} />
-        <Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Route path="/payment-success" element={<DepositSuccess />} />
+      <Route path="/payment-cancel" element={<DepositCancel />} />
+
+      <Route path="/parking-status" element={<ParkingLotStatus />} />
+      <Route path="/change-password" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 

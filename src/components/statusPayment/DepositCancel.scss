@@ -1,0 +1,148 @@
+.deposit-cancel-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fff7ed 0%, #fffaf5 45%, #ffffff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+
+    .deposit-cancel-card {
+        width: 100%;
+        max-width: 520px;
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 40px 32px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        animation: fadeInUp 0.35s ease;
+
+        .cancel-icon-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+
+            .cancel-icon {
+                width: 88px;
+                height: 88px;
+                border-radius: 50%;
+                background: #f97316;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 12px 30px rgba(249, 115, 22, 0.28);
+
+                span {
+                    color: #ffffff;
+                    font-size: 48px;
+                    font-weight: 800;
+                    line-height: 1;
+                }
+            }
+        }
+
+        h1 {
+            margin: 0;
+            color: #111827;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .description {
+            margin: 16px 0 0;
+            color: #4b5563;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .notice-box {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 16px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+
+            p {
+                margin: 0;
+                color: #9a3412;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        }
+
+        .action-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+
+            button {
+                flex: 1;
+                height: 46px;
+                border-radius: 14px;
+                border: none;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .primary-btn {
+                background: #f97316;
+                color: #ffffff;
+
+                &:hover {
+                    background: #ea580c;
+                    transform: translateY(-1px);
+                }
+            }
+
+            .secondary-btn {
+                background: #f3f4f6;
+                color: #374151;
+
+                &:hover {
+                    background: #e5e7eb;
+                    transform: translateY(-1px);
+                }
+            }
+        }
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 576px) {
+    .deposit-cancel-page {
+        padding: 16px;
+
+        .deposit-cancel-card {
+            padding: 32px 20px;
+            border-radius: 20px;
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .description {
+                font-size: 15px;
+            }
+
+            .action-group {
+                flex-direction: column;
+
+                button {
+                    width: 100%;
+                }
+            }
+        }
+    }
+}

@@ -66,6 +66,7 @@ const WelcomePage = () => {
 
   const quickActions: QuickAction[] = !isAuthenticated
     ? [
+      { to: '/parking-status', label: 'Trạng thái bãi đỗ', type: 'primary' },
       { to: '/login', label: 'Đăng nhập', type: 'secondary' },
       { to: '/register', label: 'Đăng ký', type: 'primary' },
     ]
