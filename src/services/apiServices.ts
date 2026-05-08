@@ -256,3 +256,13 @@ export const getDashBoard = (date: string, lotId: number) => {
   const URL_BACKEND = '/api/v1/dashboard/parking-flow';
   return axios.get(URL_BACKEND, { params: { date, lotId } });
 }
+
+export const getRevenueByDay = (lotId:number, date: string) => {
+  const URL_BACKEND = '/api/v1/dashboard/revenue-by-day';
+  return axios.get(URL_BACKEND, { params: { lotId, date } });
+}
+
+export const getRevenueByMonth = (lotId:number, date: string) => {
+  const URL_BACKEND = '/api/v1/dashboard/revenue-by-month';
+  return axios.get(URL_BACKEND, { params: { lotId, date } });
+}

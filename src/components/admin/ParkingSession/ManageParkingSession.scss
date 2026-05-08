@@ -144,6 +144,35 @@
     }
   }
 
+  .revenue-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+
+    .revenue-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
+      border: 1px solid #e6edf7;
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+
+      .revenue-label {
+        color: #56627a;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      .revenue-value {
+        color: #0f5bd7;
+        font-size: 23px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+    }
+  }
+
   .parking-session-content {
     .table-parking-session-container {
       background: #fff;
@@ -235,6 +264,10 @@
         padding: 14px;
         overflow-x: auto;
       }
+    }
+
+    .revenue-summary {
+      grid-template-columns: 1fr;
     }
   }
 }

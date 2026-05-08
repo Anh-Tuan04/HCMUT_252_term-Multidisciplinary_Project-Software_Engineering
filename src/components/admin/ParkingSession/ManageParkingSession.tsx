@@ -1,11 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaCalendarAlt, FaSearch } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
 import TableParkingSessionPaginate from "./TableParkingSessionPaginate";
 import ModelViewParkingSession from "./ModelViewParkingSession";
 
-import { getAllParkingSessions } from "../../../services/apiServices";
+import {
+  getAllLot,
+  getAllParkingSessions,
+  getRevenueByDay,
+  getRevenueByMonth,
+} from "../../../services/apiServices";
 import type { ParkingSession } from "../../../interfaces";
 
 import "./ManageParkingSession.scss";
@@ -20,6 +25,8 @@ const getToday = () => {
   return `${year}-${month}-${day}`;
 };
 
+const formatMoney = (value: number) => `${value.toLocaleString("vi-VN")} VNĐ`;
+
 const ManageParkingSession = () => {
   const PAGE_SIZE = 5;
 
@@ -32,6 +39,11 @@ const ManageParkingSession = () => {
   const [listSessions, setListSessions] = useState<ParkingSession[]>([]);
   const [dataView, setDataView] = useState<ParkingSession>({} as ParkingSession);
   const [showModelView, setShowModelView] = useState(false);
+  const [selectedLotId, setSelectedLotId] = useState<number | null>(null);
+  const [currentRevenueDay, setCurrentRevenueDay] = useState(0);
+  const [currentRevenueMonth, setCurrentRevenueMonth] = useState(0);
+  const [loadingRevenue, setLoadingRevenue] = useState(false);
+  const didInitDateEffect = useRef(false);
 
   const fetchParkingSessions = async (
     selectedDate = date,
@@ -61,13 +73,79 @@ const ManageParkingSession = () => {
   };
 
   // Rút gọn useEffect giống ManageUser
+  const fetchCurrentRevenue = async (lotId: number) => {
+    try {
+      setLoadingRevenue(true);
+      const [dayRes, monthRes] = await Promise.all([
+        getRevenueByDay(lotId, date),
+        getRevenueByMonth(lotId, date),
+      ]);
+
+      setCurrentRevenueDay(dayRes?.data?.data?.revenue || 0);
+      setCurrentRevenueMonth(monthRes?.data?.data?.revenue || 0);
+    } catch {
+      setCurrentRevenueDay(0);
+      setCurrentRevenueMonth(0);
+      toast.error("Lỗi khi lấy doanh thu hiện tại");
+    } finally {
+      setLoadingRevenue(false);
+    }
+  };
+
   useEffect(() => {
-    const loadInitialParkingSessions = async () => {
+    const loadInitialData = async () => {
       await fetchParkingSessions(date, 1, "");
+
+      try {
+        const lotRes = await getAllLot();
+        if (lotRes?.data?.success) {
+          const lots = lotRes?.data?.data || [];
+          if (Array.isArray(lots) && lots.length > 0) {
+            setSelectedLotId(lots[0].id);
+          }
+        }
+      } catch {
+        setSelectedLotId(null);
+      }
     };
-    loadInitialParkingSessions();
+
+    loadInitialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!selectedLotId) return;
+    const fetchData = async () => {
+        await fetchCurrentRevenue(selectedLotId);
+    };
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLotId]);
+
+  useEffect(() => {
+    if (!didInitDateEffect.current) {
+      didInitDateEffect.current = true;
+      return;
+    }
+
+    const fetchDataByDate = async () => {
+      await fetchParkingSessions(date, 1, search ? searchTerm : "");
+      if (selectedLotId) {
+        await fetchCurrentRevenue(selectedLotId);
+      }
+    };
+
+    fetchDataByDate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date]);
+
+  useEffect(() => {
+    if (selectedLotId || listSessions.length === 0) return;
+    const fetchData = () => {
+        setSelectedLotId(listSessions[0].lot_id);
+    };
+    fetchData();
+  }, [listSessions, selectedLotId]);
 
   const handleClearSearch = async () => {
     setCurrentPage(1);
@@ -93,14 +171,12 @@ const ManageParkingSession = () => {
     }
   };
 
-  const handleChangeDate = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeDate = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
 
     setDate(selectedDate);
     setCurrentPage(1);
 
-    // Khi đổi ngày, vẫn giữ nguyên bộ lọc tìm kiếm hiện tại
-    await fetchParkingSessions(selectedDate, 1, search ? searchTerm : "");
   };
 
   const handleClickBtnView = (session: ParkingSession) => {
@@ -149,6 +225,22 @@ const ManageParkingSession = () => {
           <div className="date-filter">
             <FaCalendarAlt className="date-icon" />
             <input type="date" value={date} onChange={handleChangeDate} />
+          </div>
+        </div>
+      </div>
+
+      <div className="revenue-summary">
+        <div className="revenue-card">
+          <div className="revenue-label">Doanh thu hôm nay</div>
+          <div className="revenue-value">
+            {loadingRevenue ? "Đang tải..." : formatMoney(currentRevenueDay)}
+          </div>
+        </div>
+
+        <div className="revenue-card">
+          <div className="revenue-label">Doanh thu tháng này</div>
+          <div className="revenue-value">
+            {loadingRevenue ? "Đang tải..." : formatMoney(currentRevenueMonth)}
           </div>
         </div>
       </div>
