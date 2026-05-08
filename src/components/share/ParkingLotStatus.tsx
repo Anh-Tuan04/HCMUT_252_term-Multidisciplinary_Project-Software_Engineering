@@ -302,6 +302,11 @@ const ParkingLotStatus = () => {
         ? Math.round((stats.maintain / stats.total) * 100)
         : 0;
 
+    const occupiedRate = stats.total ? (stats.occupied / (stats.occupied + stats.available)) * 100 : 0;
+    // Full nếu số lượng ô đỗ available bằng 0 và tổng số ô đỗ lớn hơn 0
+    const isLotFull = stats.total > 0 && stats.available === 0;
+    const isLotNearFull = !isLotFull && occupiedRate >= 87.5;
+
     const selectedLotText = activeLotDetail
         ? `${activeLotDetail.id} - ${activeLotDetail.name} - ${activeLotDetail.location}`
         : selectedLot
@@ -399,7 +404,8 @@ const ParkingLotStatus = () => {
                         <h2>{selectedLotText}</h2>
                     </div>
 
-                    <select
+                    <div className="lot-card__actions">
+                        <select
                         value={selectedLotId ?? ""}
                         onChange={(e) => {
                             const nextLotId = Number(e.target.value);
@@ -421,7 +427,21 @@ const ParkingLotStatus = () => {
                                 {lot.id} - {lot.name} - {lot.location}
                             </option>
                         ))}
-                    </select>
+                        </select>
+
+                        {(isLotNearFull || isLotFull) && (
+                            <div
+                                className={`lot-status-alert ${isLotFull ? "lot-status-alert--full" : "lot-status-alert--near-full"}`}
+                                role="status"
+                                aria-live="polite"
+                            >
+                                <span className="lot-status-alert__label">
+                                    {isLotFull ? "Bãi đã đầy" : "Cảnh báo bãi sắp đầy"}
+                                </span>
+                                
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="summary-card">
@@ -499,6 +519,27 @@ const ParkingLotStatus = () => {
                             <span>Làm mới</span>
                         </button>
                     </div>
+
+                    {(isLotNearFull || isLotFull) && (
+                        <div
+                            className={`board-alert-banner ${isLotFull ? "board-alert-banner--full" : "board-alert-banner--near-full"}`}
+                            role="alert"
+                        >
+                            <span className="board-alert-banner__icon">{isLotFull ? "!" : "⚠"}</span>
+                            <div className="board-alert-banner__content">
+                                <strong>
+                                    {isLotFull
+                                        ? "Bãi đỗ đã đầy 100%"
+                                        : "Cảnh báo: Tỷ lệ lấp đầy đã gần 90%"}
+                                </strong>
+                                <p>
+                                    {isLotFull
+                                        ? "Hiện tại không còn ô trống. Vui lòng chuyển sang bãi khác."
+                                        : "Bãi sắp hết chỗ, hãy chuẩn bị phương án điều phối."}
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     <div className={`parking-board ${loadingDetail ? "is-loading" : ""}`}>
                         {activeLotDetail?.slots.map((slot) => {

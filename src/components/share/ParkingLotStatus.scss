@@ -233,6 +233,14 @@ $white: #ffffff;
     word-break: break-word;
   }
 
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   select {
     min-width: 250px;
     height: 48px;
@@ -256,6 +264,43 @@ $white: #ffffff;
       opacity: 0.65;
       cursor: not-allowed;
     }
+  }
+}
+
+.lot-status-alert {
+  min-height: 48px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(23, 50, 77, 0.14);
+
+  &__label {
+    font-size: 13px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  strong {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  &--near-full {
+    color: #8a4b00;
+    border-color: rgba(245, 158, 11, 0.5);
+    background: linear-gradient(135deg, #fff3dd, #ffe8bd);
+  }
+
+  &--full {
+    color: #fff;
+    border-color: rgba(196, 39, 34, 0.9);
+    background: linear-gradient(135deg, #ef5350, #cf2e2a);
+    animation: fullAlertBlink 0.9s ease-in-out infinite;
   }
 }
 
@@ -417,6 +462,65 @@ $white: #ffffff;
 .parking-board-card {
   border-radius: 30px;
   padding: 24px;
+}
+
+.board-alert-banner {
+  margin-bottom: 16px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 26px rgba(23, 50, 77, 0.12);
+
+  &__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  &__content {
+    strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+  }
+
+  &--near-full {
+    border-color: rgba(245, 158, 11, 0.45);
+    background: linear-gradient(120deg, rgba(255, 247, 230, 0.97), rgba(255, 236, 196, 0.95));
+    color: #8a4b00;
+
+    .board-alert-banner__icon {
+      background: rgba(245, 158, 11, 0.18);
+    }
+  }
+
+  &--full {
+    border-color: rgba(196, 39, 34, 0.75);
+    background: linear-gradient(120deg, #fff0ef, #ffd7d5);
+    color: #8e1f1b;
+
+    .board-alert-banner__icon {
+      color: #fff;
+      background: linear-gradient(135deg, #ef5350, #cf2e2a);
+    }
+  }
 }
 
 .board-header {
@@ -806,6 +910,19 @@ $white: #ffffff;
   }
 }
 
+@keyframes fullAlertBlink {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 10px 22px rgba(23, 50, 77, 0.14);
+  }
+
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 4px rgba(239, 83, 80, 0.22), 0 14px 24px rgba(23, 50, 77, 0.18);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -864,10 +981,20 @@ $white: #ffffff;
     flex-direction: column;
     align-items: stretch;
 
+    &__actions {
+      justify-content: stretch;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
     select {
       width: 100%;
       min-width: unset;
     }
+  }
+
+  .lot-status-alert {
+    justify-content: space-between;
   }
 
   .overview-panel {
