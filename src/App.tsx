@@ -21,6 +21,7 @@ import ManageLot from './components/admin/ManageLot/ManageLot.js';
 import ManageDevice from './components/admin/ManageDevice/ManageDevice.js';
 import DepositSuccess from './components/statusPayment/DepositSuccess.js';
 import DepositCancel from './components/statusPayment/DepositCancel.js';
+import MyPayment from './components/user/ManagePayment/MyPayment.js';
 
 const App = () => {
   return (
@@ -38,6 +39,7 @@ const App = () => {
 
       <Route path="/user" element={<PrivateRoute><UserLayout /></PrivateRoute>}>
         <Route index element={<MyProfile />} />
+        <Route path="payments" element={<MyPayment />} />
         <Route path="parking_sessions" element={<MyParkingSession />} />
       </Route>
 

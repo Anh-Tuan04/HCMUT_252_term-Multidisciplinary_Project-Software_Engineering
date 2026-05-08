@@ -5,7 +5,7 @@ const DepositSuccess = () => {
     const navigate = useNavigate();
 
     const handleGoWallet = () => {
-        navigate('/user');
+        navigate('/user/payments');
     };
 
     const handleGoHome = () => {

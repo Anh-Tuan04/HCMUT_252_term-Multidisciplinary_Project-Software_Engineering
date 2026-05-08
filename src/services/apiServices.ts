@@ -49,6 +49,11 @@ export const getMyProfile = () => {
   return axios.get(URL_BACKEND);
 }
 
+export const getMyWallet = () => {
+  const URL_BACKEND = '/api/v1/users/my-wallet';
+  return axios.get(URL_BACKEND);
+}
+
 export const updateMyProfile = (first_name: string, last_name: string) => {
   const URL_BACKEND = '/api/v1/users/change-profile';
   const data = { first_name, last_name };
@@ -77,6 +82,31 @@ export const findUserByEmail = (email: string) => {
   const URL_BACKEND = 'api/v1/rfid-cards/user-email';
   return axios.get(URL_BACKEND, { params: { email } });
 }
+
+// ========== Payment API ==========
+export const createPayment = (amount: number) => {
+  const URL_BACKEND = '/api/v1/wallets/deposit';
+  const data = { amount };
+  return axios.post(URL_BACKEND, data);
+}
+
+export const getTransactionHistory = (
+  limit = 20,
+  cursor?: {
+    createdAt: string;
+    id: number;
+  }
+) => {
+  const URL_BACKEND = '/api/v1/wallets/transactions';
+
+  return axios.get(URL_BACKEND, {
+    params: {
+      limit,
+      cursorCreatedAt: cursor?.createdAt,
+      cursorId: cursor?.id,
+    },
+  });
+};
 
 // ========== Parking Lot API ==========
 

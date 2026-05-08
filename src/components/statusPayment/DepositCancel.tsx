@@ -5,7 +5,7 @@ const DepositCancel = () => {
     const navigate = useNavigate();
 
     const handleRetryDeposit = () => {
-        navigate('/wallet');
+        navigate('/user/payments');
     };
 
     const handleGoHome = () => {

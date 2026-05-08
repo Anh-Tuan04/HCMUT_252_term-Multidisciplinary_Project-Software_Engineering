@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { FaHome, FaCar } from "react-icons/fa";
 import { BsBuildingCheck } from "react-icons/bs";
 import { ImProfile } from "react-icons/im";
+import { MdOutlinePayment } from "react-icons/md";
 const UserSidebar = ({ collapsed = false, mobileOpen = false, onCloseMobile }
   : { collapsed?: boolean; mobileOpen?: boolean; onCloseMobile: () => void }) => {
   return (
@@ -15,6 +16,10 @@ const UserSidebar = ({ collapsed = false, mobileOpen = false, onCloseMobile }
         <NavLink to="/user" end className="nav-item">
           <span className="icon"><ImProfile style={{ color: '#1ea971', fontSize: '1.2rem' }} /></span>
           {!collapsed && <span className="label">My Profile</span>}
+        </NavLink>
+        <NavLink to="/user/payments" end className="nav-item">
+          <span className="icon"><MdOutlinePayment style={{ color: '#a8a500', fontSize: '1.2rem' }} /></span>
+          {!collapsed && <span className="label">My Payments</span>}
         </NavLink>
         <NavLink to="/user/parking_sessions" className="nav-item">
           <span className="icon"><BsBuildingCheck style={{ color: '#bebebeff'}} /></span>
